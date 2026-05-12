@@ -1,17 +1,97 @@
 ---
-
+import "../styles/global.css";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Evergarden</title>
+  </head>
+
+  <body class="min-h-screen bg-zinc-950 text-white overflow-x-hidden">
+    <!-- 背景柔光 -->
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+      <div
+        class="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-pink-500/30 rounded-full blur-3xl"
+      >
+      </div>
+
+      <div
+        class="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] bg-blue-500/30 rounded-full blur-3xl"
+      >
+      </div>
+    </div>
+
+    <!-- 主区域 -->
+    <main class="max-w-6xl mx-auto px-6 py-20">
+      <!-- Hero -->
+      <section class="flex flex-col items-center text-center py-32">
+        <p class="mb-4 text-pink-300 tracking-[0.3em] uppercase">Evergarden</p>
+
+        <h1 class="text-6xl md:text-8xl font-black mb-6">夜明砂</h1>
+
+        <p class="text-zinc-300 text-lg md:text-2xl max-w-2xl leading-relaxed">
+          AI · 游戏开发 · 独立创作
+          <br />
+          制作温柔、有陪伴感的数字作品。
+        </p>
+
+        <!-- 按钮 -->
+        <div class="flex gap-4 mt-10">
+          <button
+            class="px-8 py-4 rounded-2xl bg-white text-black font-bold hover:scale-105 transition"
+          >
+            查看项目
+          </button>
+
+          <button
+            class="px-8 py-4 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/20 transition"
+          >
+            关于我
+          </button>
+        </div>
+      </section>
+
+      <!-- 项目展示 -->
+      <section class="mt-20">
+        <h2 class="text-4xl font-bold mb-10">Projects</h2>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- 卡片 -->
+          <div
+            class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 hover:-translate-y-2 transition"
+          >
+            <h3 class="text-2xl font-bold mb-3">解谜跑酷游戏</h3>
+
+            <p class="text-zinc-400 leading-relaxed">
+              温馨卡通风格的小动物解谜跑酷， 注重情绪陪伴与轻松体验。
+            </p>
+          </div>
+
+          <!-- 卡片 -->
+          <div
+            class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 hover:-translate-y-2 transition"
+          >
+            <h3 class="text-2xl font-bold mb-3">QQ Agent</h3>
+
+            <p class="text-zinc-400 leading-relaxed">
+              基于聊天记录分析与 Agent 工作流 的 AI 实验项目。
+            </p>
+          </div>
+
+          <!-- 卡片 -->
+          <div
+            class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 hover:-translate-y-2 transition"
+          >
+            <h3 class="text-2xl font-bold mb-3">AI 创作实验</h3>
+
+            <p class="text-zinc-400 leading-relaxed">
+              使用 AI 辅助游戏开发、 UI设计与内容生成。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>
