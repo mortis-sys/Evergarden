@@ -9,47 +9,63 @@ import "../styles/global.css";
     <title>Evergarden</title>
   </head>
 
-  <body class="min-h-screen bg-zinc-950 text-white overflow-x-hidden">
-    <!-- 背景柔光 -->
-    <div class="fixed inset-0 -z-10 overflow-hidden">
-      <div
-        class="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-pink-500/30 rounded-full blur-3xl"
-      >
-      </div>
-
-      <div
-        class="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] bg-blue-500/30 rounded-full blur-3xl"
-      >
-      </div>
-    </div>
-
+  <body class="min-h-screen overflow-x-hidden">
     <!-- 主区域 -->
     <main class="max-w-6xl mx-auto px-6 py-20">
       <!-- Hero -->
-      <section class="flex flex-col items-center text-center py-32">
-        <p class="mb-4 text-pink-300 tracking-[0.3em] uppercase">Evergarden</p>
+      <section
+        <section
+        class="relative flex min-h-screen items-center justify-center overflow-hidden px-6"
+      >
+        >
+        <!-- 背景柔光 -->
+        <div
+          class="absolute top-[-200px] left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-200/40 blur-[120px]"
+        >
+        </div>
 
-        <h1 class="text-6xl md:text-8xl font-black mb-6">夜明砂</h1>
+        <!-- 主内容 -->
+        <div class="max-w-4xl text-center">
+          <p class="mb-6 text-sm tracking-[0.3em] text-gray-500 uppercase">
+            Independent Developer · AI · Game Design
+          </p>
 
-        <p class="text-zinc-300 text-lg md:text-2xl max-w-2xl leading-relaxed">
-          AI · 游戏开发 · 独立创作
-          <br />
-          制作温柔、有陪伴感的数字作品。
-        </p>
-
-        <!-- 按钮 -->
-        <div class="flex gap-4 mt-10">
-          <button
-            class="px-8 py-4 rounded-2xl bg-white text-black font-bold hover:scale-105 transition"
+          <h1
+            class="mb-8 text-5xl font-bold leading-tight text-gray-900 md:text-7xl"
           >
-            查看项目
-          </button>
+            Building
+            <span
+              class="bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent"
+            >
+              Emotional
+            </span>
+            Digital Worlds
+          </h1>
 
-          <button
-            class="px-8 py-4 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/20 transition"
+          <p
+            class="mx-auto mb-10 max-w-2xl text-lg leading-8 text-gray-600 md:text-xl"
           >
-            关于我
-          </button>
+            Creating calm, emotional and immersive experiences through AI,
+            interaction design and indie game development.
+          </p>
+
+          <div
+            class="flex flex-col items-center justify-center gap-4 sm:flex-row"
+          >
+            <a
+              href="#projects"
+              class="rounded-2xl bg-gradient-to-r from-blue-500 to-violet-500 px-8 py-4 font-medium text-white shadow-lg shadow-blue-200 transition hover:scale-105"
+            >
+              View Projects
+            </a>
+
+            <a
+              href="#about"
+              class="rounded-2xl border border-gray-200 bg-white/70 px-8 py-4 font-medium text-gray-700 backdrop-blur-md transition hover:bg-white"
+            >
+              About Me
+            </a>
+          </div>
         </div>
       </section>
 
@@ -60,33 +76,33 @@ import "../styles/global.css";
         <div class="grid md:grid-cols-3 gap-6">
           <!-- 卡片 -->
           <div
-            class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 hover:-translate-y-2 transition"
+            class="rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur-xl transition hover:-translate-y-2 hover:shadow-xl"
           >
             <h3 class="text-2xl font-bold mb-3">解谜跑酷游戏</h3>
 
-            <p class="text-zinc-400 leading-relaxed">
+            <p class="text-gray-600 leading-relaxed">
               温馨卡通风格的小动物解谜跑酷， 注重情绪陪伴与轻松体验。
             </p>
           </div>
 
           <!-- 卡片 -->
           <div
-            class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 hover:-translate-y-2 transition"
+            class="rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur-xl transition hover:-translate-y-2 hover:shadow-xl"
           >
             <h3 class="text-2xl font-bold mb-3">QQ Agent</h3>
 
-            <p class="text-zinc-400 leading-relaxed">
+            <p class="text-gray-600 leading-relaxed">
               基于聊天记录分析与 Agent 工作流 的 AI 实验项目。
             </p>
           </div>
 
           <!-- 卡片 -->
           <div
-            class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 hover:-translate-y-2 transition"
+            class="rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur-xl transition hover:-translate-y-2 hover:shadow-xl"
           >
             <h3 class="text-2xl font-bold mb-3">AI 创作实验</h3>
 
-            <p class="text-zinc-400 leading-relaxed">
+            <p class="text-gray-600 leading-relaxed">
               使用 AI 辅助游戏开发、 UI设计与内容生成。
             </p>
           </div>
