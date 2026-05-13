@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@upstash/context7-mcp@latest"]
+    },
+    "github": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-github"]
+    },
+    "cloudflare": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "cloudflare-mcp-server"],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": ""
+      }
+    }
+  }
+}

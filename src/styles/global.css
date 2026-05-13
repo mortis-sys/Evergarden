@@ -13,18 +13,76 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-
-
-
   color: #111827;
-
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
-body {
-  font-family: 'Inter', sans-serif;
+/* 唱片旋转 */
+#record-disc {
+  transition: transform 0.05s linear;
+}
+
+/* 进度条悬停效果 */
+#progress-bar:hover {
+  opacity: 0.8;
+}
+
+/* 界面切换 */
+.section-content {
+  display: none;
+}
+.section-content.active {
+  display: block;
+  animation: fadeIn 0.4s ease;
+}
+
+/* 播放器展开状态 */
+#music-player {
+  touch-action: none;
+  user-select: none;
+}
+#music-player.expanded {
+  width: 20rem !important;
+}
+#music-player.expanded #disc-container {
+  height: 4rem !important;
+  width: 4rem !important;
+}
+#music-player.expanded #song-name {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
+}
+#music-player.expanded #artist-name {
+  font-size: 0.8rem !important;
+}
+#music-player.expanded #current-time,
+#music-player.expanded #total-time {
+  font-size: 11px !important;
+}
+#music-player.expanded .ctrl-btn {
+  height: 2rem !important;
+  width: 2rem !important;
+}
+#music-player.expanded .ctrl-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+#music-player.expanded #play-btn {
+  height: 2.25rem !important;
+  width: 2.25rem !important;
+}
+#music-player.expanded #play-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

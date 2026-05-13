@@ -2,135 +2,1273 @@
 import "../styles/global.css";
 
 import bgImage from "../assets/bg.png";
+import headImage from "../assets/head.jpg";
+import playlistData from "../music/playlist-data.json";
+import projects from "../data/projects.json";
+import talks from "../data/talks.json";
+import animeList from "../data/anime.json";
+import gamingList from "../data/gaming.json";
+
+const songs = playlistData;
+const songsJson = JSON.stringify(songs);
+
+const photoModules = import.meta.glob('../photos/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
+const photoEntries = Object.entries(photoModules)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, mod]) => mod.src);
+const photoCount = photoEntries.length;
+const photoUrlsJson = JSON.stringify(photoEntries);
+const photoCat = photoEntries.map((_, i) => {
+  if (i === 2) return "动漫";
+  if (i === 12) return "截图";
+  return "日常";
+});
+const categories = ["全部", "动漫", "日常", "截图"];
+const categoriesJson = JSON.stringify(categories);
+const photoCatJson = JSON.stringify(photoCat);
+const projectCount = projects.length;
+const talkCount = talks.length;
+
+// 构建文件名 → Astro 处理后图片 URL 映射
+const photoMap = {};
+Object.entries(photoModules).forEach(([path, mod]) => {
+  photoMap[path.split('/').pop()] = mod.src;
+});
+const fallbackBg = photoEntries[0];
+
+// 按每个条目的 image 字段获取配图
+const projectBgImages = projects.map((p) => photoMap[p.image] || fallbackBg);
+const talkBgImages = talks.map((t) => photoMap[t.image] || fallbackBg);
+const [projBg1, projBg2, projBg3, projBg4, projBg5] = projectBgImages;
+const [talkBg1, talkBg2, talkBg3, talkBg4] = talkBgImages;
+const projectBgJson = JSON.stringify(projectBgImages);
+const talkBgJson = JSON.stringify(talkBgImages);
+const projectSlugsJson = JSON.stringify(projects.map(p => p.slug));
+const projectsJson = JSON.stringify(projects);
+const talksJson = JSON.stringify(talks);
 ---
 
 <html lang="zh">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Evergarden</title>
+    <title>雾籽米的 Evergarden</title>
   </head>
 
   <body class="min-h-screen overflow-x-hidden">
     <!-- 背景图 -->
     <div class="fixed inset-0 -z-20">
-      <img src={bgImage.src} alt="" class="h-full w-full object-cover" />
+      <img src={bgImage.src} alt="" class="h-full w-full object-cover object-[center_25%]" />
     </div>
 
-    <!-- 白色遮罩 -->
-    <div class="fixed inset-0 -z-10 bg-white/60 backdrop-blur-[2px]"></div>
-    <!-- 主区域 -->
-    <main class="max-w-6xl mx-auto px-6 py-20">
-      <!-- Hero -->
-      <section
-        class="relative flex min-h-screen items-center justify-center overflow-hidden px-6"
-      >
-        <!-- 背景柔光 -->
-        <div
-          class="absolute top-[-200px] left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-200/40 blur-[120px]"
+    <!-- 渐变遮罩 — 从上到下逐渐变白，让背景图在 Hero 区更通透 -->
+    <div class="fixed inset-0 -z-10 bg-gradient-to-b from-white/10 via-white/25 to-white/50"></div>
+
+    <!-- 导航栏 -->
+    <header
+      class="fixed top-0 left-0 right-0 z-50 border-b border-gray-200/50 bg-stone-50/70 transition-transform duration-500 ease-in-out"
+    >
+      <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <a
+          href="/"
+          class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-xl font-bold text-transparent"
         >
+          雾籽米的 Evergarden
+        </a>
+
+        <ul class="flex items-center gap-8 text-sm font-medium text-gray-500">
+          <li>
+            <button data-section="home" class="nav-link text-blue-600 transition hover:text-blue-800">首页</button>
+          </li>
+          <li>
+            <button data-section="projects" class="nav-link transition hover:text-blue-600">项目</button>
+          </li>
+          <li>
+            <button data-section="talks" class="nav-link transition hover:text-blue-600">杂谈</button>
+          </li>
+          <li>
+            <button data-section="photos" class="nav-link transition hover:text-blue-600">照片墙</button>
+          </li>
+          <li>
+            <button data-section="anime" class="nav-link transition hover:text-blue-600">动漫</button>
+          </li>
+          <li>
+            <button data-section="gaming" class="nav-link transition hover:text-blue-600">游戏交流</button>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- 浮动音乐播放器（响应式） -->
+    <div id="music-player" class="fixed z-40 w-28 sm:w-32 md:w-36 rounded-2xl border border-gray-200/30 bg-white/10 p-2 sm:p-3 shadow-sm backdrop-blur-sm hover:bg-white/20 cursor-grab" style="top:80px;right:16px">
+      <div class="flex flex-col items-center gap-1 sm:gap-1.5">
+        <!-- 唱片 -->
+        <div class="relative h-10 w-10 sm:h-12 sm:w-12 shrink-0" id="disc-container">
+          <div class="absolute inset-0 rounded-full bg-gradient-to-br from-gray-300 to-gray-100 shadow"></div>
+          <div class="absolute inset-0.5 rounded-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700" id="record-disc">
+            <div class="absolute inset-1.5 rounded-full overflow-hidden ring-1 ring-black/10">
+              <img id="album-art" src={songs[0].picUrl} alt="cover" class="h-full w-full object-cover" />
+            </div>
+            <div class="absolute inset-[30%] rounded-full bg-gradient-to-br from-gray-200 to-white shadow-inner"></div>
+            <div class="absolute inset-[38%] rounded-full bg-white/90 shadow"></div>
+          </div>
+        </div>
+        <!-- 歌曲名 -->
+        <p id="song-name" class="w-full truncate text-center text-[9px] sm:text-[10px] md:text-xs font-medium text-gray-600 leading-tight">{songs[0].name}</p>
+        <p id="artist-name" class="sr-only">{songs[0].artists}</p>
+        <!-- 进度条 -->
+        <div class="flex w-full items-center gap-1">
+          <span id="current-time" class="text-[6px] sm:text-[7px] text-gray-400/70 tabular-nums">0:00</span>
+          <div class="relative flex-1 h-[3px] sm:h-1 cursor-pointer rounded-full bg-gray-200/40" id="progress-bar">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-violet-500" id="progress-fill" style="width:0%"></div>
+          </div>
+          <span id="total-time" class="text-[6px] sm:text-[7px] text-gray-400/70 tabular-nums">0:00</span>
+        </div>
+        <!-- 控制按钮 -->
+        <div class="flex items-center justify-center gap-1.5 sm:gap-2">
+          <button id="prev-btn" class="ctrl-btn flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full text-gray-400/60 transition hover:scale-110 hover:text-gray-600">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor" class="sm:w-[10px] sm:h-[10px]"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+          </button>
+          <button id="play-btn" class="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-gradient-to-r from-blue-500/80 to-violet-500/80 text-white shadow transition hover:scale-105 active:scale-95">
+            <svg id="play-icon" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="sm:w-[12px] sm:h-[12px]"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <button id="next-btn" class="ctrl-btn flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full text-gray-400/60 transition hover:scale-110 hover:text-gray-600">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor" class="sm:w-[10px] sm:h-[10px]"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主区域：各界面 -->
+    <!-- 视觉特效 Canvas -->
+    <canvas id="effects-canvas" class="fixed inset-0 z-0 pointer-events-none"></canvas>
+
+    <main class="mx-auto max-w-6xl px-6 pt-20 pb-20 relative z-[1]">
+
+      <!-- ========== 首页 ========== -->
+      <section id="section-home" class="section-content active">
+        <!-- Hero 区 — 紧凑版 -->
+        <div class="relative flex min-h-[40vh] flex-col items-center justify-start overflow-hidden px-6 pt-0 pb-4">
+          <div class="absolute top-[-120px] left-1/2 -z-10 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-blue-200/40 blur-[120px]">
+          </div>
+
+          <div class="max-w-3xl text-center">
+            <p class="mb-4 text-xs tracking-[0.3em] text-gray-500 uppercase">
+              Independent Developer · AI · Game Design
+            </p>
+
+            <h1 class="mx-auto max-w-xl flex flex-col items-center gap-2 text-center font-bold leading-snug">
+              <span class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-3xl text-transparent md:text-5xl">
+                花无凋零之时
+              </span>
+              <span class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-3xl text-transparent md:text-5xl">
+                意无传达之日
+              </span>
+              <span class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-3xl text-transparent md:text-5xl">
+                爱情亘古不变
+              </span>
+              <span class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-3xl text-transparent md:text-5xl">
+                紫罗兰永世长存
+              </span>
+            </h1>
+
+            <p class="mx-auto mb-8 max-w-xl text-base leading-7 text-gray-500 md:text-lg">
+              Creating calm, emotional and immersive experiences through AI,
+              interaction design and indie game development.
+            </p>
+          </div>
         </div>
 
-        <!-- 主内容 -->
-        <div class="max-w-4xl text-center">
-          <p class="mb-6 text-sm tracking-[0.3em] text-gray-500 uppercase">
-            Independent Developer · AI · Game Design
-          </p>
+        <!-- 内容模块区 -->
+        <div class="space-y-8 pb-16">
 
-          <h1
-            class="flex flex-col items-center gap-4 text-center font-bold leading-tight"
-          >
-            <span
-              class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-4xl text-transparent md:text-6xl"
-            >
-              花无凋零之时
-            </span>
+          <!-- 关于我 + 时钟 并排 -->
+          <div class="grid gap-4 md:grid-cols-3">
+            <div data-about-card class="md:col-span-2 rounded-3xl border border-gray-200 bg-stone-50/70 p-6 shadow-sm md:p-8 cursor-pointer transition hover:shadow-md">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+                <img src={headImage.src} alt="陈懿航" class="h-20 w-20 shrink-0 rounded-2xl object-cover" />
+                <div class="min-w-0 flex-1">
+                  <h3 class="text-2xl font-bold text-gray-800">陈懿航</h3>
+                  <p class="text-sm text-gray-400">哈工大（深圳）· 计算机 · 游戏开发</p>
+                  <p class="mt-2 leading-relaxed text-gray-600">
+                    愿你前行的道路有群星闪耀。愿你留下的足迹有百花绽放。你即是上帝的馈赠，世界因你而瑰丽。
+                  </p>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <span class="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-600">AI</span>
+                    <span class="rounded-full bg-violet-100 px-3 py-1 text-xs text-violet-600">Game Dev</span>
+                    <span class="rounded-full bg-sky-100 px-3 py-1 text-xs text-sky-600">UI Design</span>
+                  </div>
 
-            <span
-              class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-4xl text-transparent md:text-6xl"
-            >
-              意无传达之日
-            </span>
+                  <!-- 统计 -->
+                  <div class="mt-4 flex gap-4 border-t border-gray-200/60 pt-4">
+                    <button data-nav="talks" class="group cursor-pointer text-left">
+                      <span class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition">{talkCount}</span>
+                      <span class="ml-1 text-xs text-gray-400 group-hover:text-blue-500 transition">文章</span>
+                    </button>
+                    <button data-nav="projects" class="group cursor-pointer text-left">
+                      <span class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition">{projectCount}</span>
+                      <span class="ml-1 text-xs text-gray-400 group-hover:text-blue-500 transition">项目</span>
+                    </button>
+                    <button data-nav="photos" class="group cursor-pointer text-left">
+                      <span class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition">{photoCount}</span>
+                      <span class="ml-1 text-xs text-gray-400 group-hover:text-blue-500 transition">相片</span>
+                    </button>
+                  </div>
 
-            <span
-              class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-4xl text-transparent md:text-6xl"
-            >
-              爱情亘古不变
-            </span>
+                  <!-- 社交 -->
+                  <div class="mt-3 flex items-center gap-2.5">
+                    <a href="https://github.com/mortis-sys" target="_blank" class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-200/60 hover:text-gray-700" title="GitHub">
+                      <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                    </a>
+                    <a href="https://space.bilibili.com" target="_blank" class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-pink-100/60 hover:text-pink-500" title="B站">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 01-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.267.573-.4.92-.4.347 0 .653.133.92.4L9.653 4.28c.142.124.213.284.213.48 0 .196-.071.356-.213.48l-.56.56h5.814l-.56-.56a.654.654 0 01-.213-.48c0-.196.071-.356.213-.48l1.226-1.226c.267-.267.573-.4.92-.4.347 0 .653.133.92.4.267.267.4.573.4.92 0 .347-.133.653-.4.92l-1.2 1.2zm-9.546 2.4H5.333c-.89.018-1.64.338-2.247.96-.606.622-.924 1.36-.946 2.213v7.36c.022.853.34 1.591.946 2.213.607.622 1.356.942 2.247.96h13.334c.89-.018 1.64-.338 2.247-.96.606-.622.924-1.36.946-2.213v-7.36c-.022-.853-.34-1.591-.946-2.213-.607-.622-1.356-.942-2.247-.96h-2.933l.56.56c.142.124.213.284.213.48 0 .196-.071.356-.213.48l-1.226 1.226c-.267.267-.573.4-.92.4-.347 0-.653-.133-.92-.4L11.44 7.813a.654.654 0 01-.213-.48c0-.196.071-.356.213-.48l.56-.56h-1.813l.56.56c.142.124.213.284.213.48 0 .196-.071.356-.213.48l-1.226 1.226c-.267.267-.573.4-.92.4-.347 0-.653-.133-.92-.4L6.454 7.813a.654.654 0 01-.213-.48c0-.196.071-.356.213-.48l.56-.56h-.747zm2.08 4.853c.124-.124.275-.186.453-.186.178 0 .329.062.453.186l1.067 1.067 1.067-1.067c.124-.124.275-.186.453-.186.178 0 .329.062.453.186.124.124.186.275.186.453 0 .178-.062.329-.186.453l-1.067 1.067 1.067 1.067c.124.124.186.275.186.453 0 .178-.062.329-.186.453-.124.124-.275.186-.453.186-.178 0-.329-.062-.453-.186L12 13.546l-1.067 1.067c-.124.124-.275.186-.453.186-.178 0-.329-.062-.453-.186-.124-.124-.186-.275-.186-.453 0-.178.062-.329.186-.453l1.067-1.067-1.067-1.067c-.124-.124-.186-.275-.186-.453 0-.178.062-.329.186-.453zm5.333 3.734c.124-.124.275-.186.453-.186h2.134c.178 0 .329.062.453.186.124.124.186.275.186.453 0 .178-.062.329-.186.453-.124.124-.275.186-.453.186h-2.134c-.178 0-.329-.062-.453-.186a.614.614 0 01-.186-.453c0-.178.062-.329.186-.453z"/></svg>
+                    </a>
+                    <a href="https://www.xiaohongshu.com" target="_blank" class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-red-50 hover:text-red-400" title="小红书">
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M11.94.11a3.11 3.11 0 012.2 1.22l.16.22 2.06 2.98c.53.77 1.37 1.47 2.43 2.03l.28.13.31.13c.85.37 1.4 1.02 1.58 1.88l.03.18.01.1v5.86c0 2.5-1.13 4.2-3.02 5.14l-.3.14-.32.12c-.89.32-1.92.48-3.07.48H5.7c-2.43 0-4.1-.96-5.05-2.72l-.13-.28-.06-.17A5.86 5.86 0 010 14.96V9.1C0 6.6 1.13 4.9 3.02 3.96l.3-.14.32-.12c.89-.32 1.92-.48 3.07-.48h4.41l.5-.01.32-.01zm-1.46 4.18h-1.5l-.46.01-.25.01c-.8.03-1.52.13-2.17.29l-.28.08-.26.1c-1.07.46-1.74 1.31-1.94 2.62l-.03.2-.01.12v5.97l.01.18c.06 1.14.5 1.98 1.35 2.54l.21.13.23.13c.69.35 1.55.54 2.6.6l.17.01h4.26l.43-.01c.8-.04 1.5-.15 2.12-.33.85-.27 1.48-.72 1.83-1.4l.08-.17.06-.2c.14-.54.2-1.13.2-1.78V8.7c0-.47-.08-.89-.25-1.27l-.06-.13-.07-.14c-.2-.37-.49-.67-.86-.9l-.15-.09-.17-.09c-.52-.28-1.06-.51-1.6-.7a2.17 2.17 0 01-.3-1.35l.02-.19.03-.19c.02-.2.05-.4.07-.59l.02-.22.01-.14-.06.01h-.06l-.43.04-.25.03c-.64.09-1.16.27-1.54.53l-.14.11-.12.13zM7.55 7.83c.12 0 .23.04.32.13.1.1.14.21.14.33 0 .13-.05.24-.14.33-.1.1-.2.14-.33.14-.12 0-.23-.05-.32-.14a.47.47 0 01-.14-.33c0-.13.05-.24.14-.33.1-.1.2-.13.33-.13zm4.11.54c.6 0 1.08.2 1.47.58.38.38.58.86.58 1.47 0 .6-.2 1.08-.58 1.46-.39.38-.87.58-1.47.58-.59 0-1.07-.2-1.45-.58-.38-.38-.58-.86-.58-1.46 0-.6.2-1.09.58-1.47.38-.38.86-.58 1.45-.58zm0 1.37c-.31 0-.56.1-.76.3-.2.2-.3.45-.3.76s.1.57.3.77c.2.2.45.3.76.3.32 0 .57-.1.77-.3s.3-.46.3-.77c0-.3-.1-.55-.3-.75-.2-.2-.45-.3-.77-.3zm-2.65 3.35c.12 0 .22.04.3.13l4.48 4.35a.5.5 0 01.16.37c0 .14-.05.27-.16.38-.1.1-.22.16-.37.16a.56.56 0 01-.4-.16l-4.48-4.36a.5.5 0 01-.16-.38c0-.14.05-.27.16-.38.1-.1.23-.14.37-.14l.1.03z"/></svg>
+                    </a>
+                    <a href="mailto:wuzimi@evergarden.dev" class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-200/60 hover:text-gray-700" title="邮箱">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            <span
-              class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-4xl text-transparent md:text-6xl"
-            >
-              紫罗兰永世长存
-            </span>
-          </h1>
+            <!-- 电子钟 配色方案二：落日余晖 -->
+            <div class="rounded-3xl border border-amber-200/50 bg-gradient-to-br from-amber-50/90 via-rose-50/90 to-orange-50/90 p-5 sm:p-6 md:p-7 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[180px] sm:min-h-[200px] md:min-h-[220px]">
+              <!-- 装饰：落日柔光盘 -->
+              <div class="absolute -top-10 -right-10 w-32 sm:w-40 h-32 sm:h-40 rounded-full bg-gradient-to-br from-amber-200/20 via-rose-200/15 to-transparent blur-xl"></div>
+              <!-- 装饰元素 -->
+              <div class="absolute -top-5 -right-5 w-14 sm:w-18 h-14 sm:h-18 rounded-full border border-amber-200/25"></div>
+              <div class="absolute -bottom-3 -left-3 w-10 sm:w-12 h-10 sm:h-12 rounded-full border border-rose-200/25"></div>
+              <div class="absolute top-4 sm:top-5 right-5 sm:right-7 flex gap-1.5">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-amber-300/50"></span>
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-rose-300/50"></span>
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-amber-300/50"></span>
+              </div>
+              <div class="absolute bottom-6 sm:bottom-8 left-4 sm:left-5 w-1.5 sm:w-2 h-1.5 sm:h-2 rotate-45 bg-rose-300/40"></div>
 
-          <p
-            class="mx-auto mb-10 max-w-2xl text-lg leading-8 text-gray-600 md:text-xl"
-          >
-            Creating calm, emotional and immersive experiences through AI,
-            interaction design and indie game development.
-          </p>
+              <!-- 时间 -->
+              <div class="flex items-baseline gap-0.5 sm:gap-1 relative z-10" style="font-size: clamp(2rem, 5.5vw, 4rem);">
+                <span id="clock-hour" class="font-bold tabular-nums bg-gradient-to-br from-amber-600 via-rose-500 to-orange-500 bg-clip-text text-transparent" style="font-size: inherit">00</span>
+                <span id="clock-colon" class="font-bold text-rose-400 mx-0.5 animate-pulse" style="font-size: 0.65em">:</span>
+                <span id="clock-min" class="font-bold tabular-nums bg-gradient-to-br from-amber-600 via-rose-500 to-orange-500 bg-clip-text text-transparent" style="font-size: inherit">00</span>
+                <span id="clock-sec" class="font-light tabular-nums text-rose-400 self-end mb-0.5" style="font-size: 0.35em">00</span>
+              </div>
 
-          <div
-            class="flex flex-col items-center justify-center gap-4 sm:flex-row"
-          >
-            <a
-              href="#projects"
-              class="rounded-2xl bg-gradient-to-r from-blue-500 to-violet-500 px-8 py-4 font-medium text-white shadow-lg shadow-blue-200 transition hover:scale-105"
-            >
-              View Projects
-            </a>
+              <!-- 日期 + 星期 -->
+              <div class="mt-3 sm:mt-4 flex items-center gap-2 sm:gap-3 relative z-10">
+                <span class="w-4 sm:w-6 h-px bg-gradient-to-r from-transparent via-amber-300/60 to-amber-300/60"></span>
+                <span id="clock-date" class="text-xs sm:text-sm md:text-base tracking-[0.15em] text-amber-600/80 font-medium">----年--月--日</span>
+                <span class="w-4 sm:w-6 h-px bg-gradient-to-r from-amber-300/60 via-amber-300/60 to-transparent"></span>
+              </div>
+              <div class="mt-1 relative z-10">
+                <span id="clock-weekday" class="bg-gradient-to-r from-amber-600 to-rose-600 bg-clip-text text-transparent font-bold tracking-wider text-sm sm:text-base md:text-lg">---</span>
+              </div>
 
-            <a
-              href="#about"
-              class="rounded-2xl border border-gray-200 bg-white/70 px-8 py-4 font-medium text-gray-700 backdrop-blur-md transition hover:bg-white"
-            >
-              About Me
-            </a>
+              <!-- 时区标识 -->
+              <div class="mt-2 sm:mt-3 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-amber-400/50 tracking-widest relative z-10">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sm:w-3 sm:h-3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                北 京 时 间
+              </div>
+            </div>
+          </div>
+
+          <!-- 照片墙 -->
+          <div data-nav="photos" class="group relative overflow-hidden rounded-3xl shadow-sm cursor-pointer" style="aspect-ratio: 16/9">
+            <div class="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105" id="photo-bg"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+            <div class="relative z-10 flex h-full flex-col justify-between p-5">
+              <h3 class="text-lg font-bold text-white drop-shadow-sm">照片墙</h3>
+              <div class="flex items-center justify-between">
+                <span id="photo-caption" class="text-sm text-white/80 font-light">-</span>
+                <div class="flex gap-1.5" id="photo-dots">
+                  {photoEntries.map(() => (
+                    <span class="inline-block h-1.5 w-1.5 rounded-full bg-white/50 transition-all"></span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 项目 + 杂谈 并排 -->
+          <div class="grid gap-4 md:grid-cols-2">
+            <div data-nav="projects" class="group relative overflow-hidden rounded-3xl shadow-sm cursor-pointer" style="aspect-ratio: 16/9">
+              <div class="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105" id="project-bg"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+              <div class="relative z-10 flex h-full flex-col justify-between p-5">
+                <h3 class="text-lg font-bold text-white drop-shadow-sm">项目</h3>
+                <div>
+                  <div id="project-caption" class="text-white"></div>
+                  <div class="mt-3 flex justify-center gap-1.5" id="project-dots">
+                    {projectBgImages.map((_, i) => (
+                      <span class={`inline-block h-1.5 ${i === 0 ? 'w-4' : 'w-1.5'} rounded-full ${i === 0 ? 'bg-white' : 'bg-white/50'} transition-all`}></span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div data-nav="talks" class="group relative overflow-hidden rounded-3xl shadow-sm cursor-pointer" style="aspect-ratio: 16/9">
+              <div class="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105" id="talk-bg"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+              <div class="relative z-10 flex h-full flex-col justify-between p-5">
+                <h3 class="text-lg font-bold text-white drop-shadow-sm">杂谈</h3>
+                <div>
+                  <div id="talk-caption" class="text-white"></div>
+                  <div class="mt-3 flex justify-center gap-1.5" id="talk-dots">
+                    {talkBgImages.map((_, i) => (
+                      <span class={`inline-block h-1.5 ${i === 0 ? 'w-4' : 'w-1.5'} rounded-full ${i === 0 ? 'bg-white' : 'bg-white/50'} transition-all`}></span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========== 项目 ========== -->
+      <section id="section-projects" class="section-content">
+        <div class="pt-8">
+          <h2 class="mb-2 text-4xl font-bold">项目</h2>
+          <p class="mb-10 text-gray-500">一些正在做和做过的东西。</p>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            {projects.map((p, i) => (
+              <a href={`/projects/${p.slug}`} class="group relative block overflow-hidden rounded-3xl shadow-sm transition hover:shadow-xl" style={`aspect-ratio: 4/3`}>
+                <div class="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105" style={`background-image:url(${projectBgImages[i]})`}></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                <div class="relative z-10 flex h-full flex-col justify-end p-6">
+                  <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm text-xl">{p.emoji}</div>
+                  <h3 class="text-xl font-bold text-white">{p.title}</h3>
+                  <p class="mt-1 text-sm text-white/80">{p.description}</p>
+                </div>
+              </a>
+            ))}
           </div>
         </div>
       </section>
 
-      <!-- 项目展示 -->
-      <section class="mt-20">
-        <h2 class="text-4xl font-bold mb-10">Projects</h2>
+      <!-- ========== 杂谈 ========== -->
+      <section id="section-talks" class="section-content">
+        <div class="pt-8">
+          <h2 class="mb-2 text-4xl font-bold">杂谈</h2>
+          <p class="mb-10 text-gray-500">一些想法、笔记与记录。</p>
 
-        <div class="grid md:grid-cols-3 gap-6">
-          <!-- 卡片 -->
-          <div
-            class="rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur-xl transition hover:-translate-y-2 hover:shadow-xl"
-          >
-            <h3 class="text-2xl font-bold mb-3">解谜跑酷游戏</h3>
-
-            <p class="text-gray-600 leading-relaxed">
-              温馨卡通风格的小动物解谜跑酷， 注重情绪陪伴与轻松体验。
-            </p>
-          </div>
-
-          <!-- 卡片 -->
-          <div
-            class="rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur-xl transition hover:-translate-y-2 hover:shadow-xl"
-          >
-            <h3 class="text-2xl font-bold mb-3">QQ Agent</h3>
-
-            <p class="text-gray-600 leading-relaxed">
-              基于聊天记录分析与 Agent 工作流 的 AI 实验项目。
-            </p>
-          </div>
-
-          <!-- 卡片 -->
-          <div
-            class="rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur-xl transition hover:-translate-y-2 hover:shadow-xl"
-          >
-            <h3 class="text-2xl font-bold mb-3">AI 创作实验</h3>
-
-            <p class="text-gray-600 leading-relaxed">
-              使用 AI 辅助游戏开发、 UI设计与内容生成。
-            </p>
+          <div class="grid gap-6 md:grid-cols-2">
+            {talks.map((t, i) => (
+              <a href={`/talks/${t.slug}`} class="group relative block overflow-hidden rounded-3xl shadow-sm transition hover:shadow-xl" style={`aspect-ratio: 4/3`}>
+                <div class="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105" style={`background-image:url(${talkBgImages[i]})`}></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                <div class="relative z-10 flex h-full flex-col justify-end p-6">
+                  <div class="mb-2 flex items-center gap-2">
+                    <span class="rounded-full bg-white/20 backdrop-blur-sm px-3 py-0.5 text-xs text-white">{t.tag}</span>
+                    <span class="text-xs text-white/60">{t.date}</span>
+                  </div>
+                  <h3 class="text-lg font-bold text-white">{t.title}</h3>
+                  <p class="mt-1 text-sm text-white/80 leading-relaxed">{t.content.split('\n')[0]}</p>
+                </div>
+              </a>
+            ))}
           </div>
         </div>
       </section>
+
+      <!-- ========== 照片墙 ========== -->
+      <section id="section-photos" class="section-content">
+        <div class="pt-8">
+          <h2 class="mb-2 text-4xl font-bold">照片墙</h2>
+          <p class="mb-6 text-gray-500">用镜头记录的瞬间。</p>
+
+          <div class="mb-6 flex flex-wrap gap-2" id="photo-categories">
+            {categories.map((cat, i) => (
+              <button class={`rounded-full px-4 py-1.5 text-sm font-medium transition cursor-pointer photo-cat-btn ${i === 0 ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`} data-cat={cat}>{cat}</button>
+            ))}
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3" id="photo-grid">
+            {photoEntries.map((url, i) => (
+              <button class="group relative aspect-square overflow-hidden rounded-3xl shadow-sm cursor-pointer text-left" data-photo-index={i} data-cat={photoCat[i]}>
+                <img src={url} alt="" class="h-full w-full object-cover transition duration-500 group-hover:scale-110" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100">
+                  <span class="absolute bottom-3 left-3 text-sm text-white/90">{(i + 1).toString().padStart(2, '0')}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 动漫 ========== -->
+      <section id="section-anime" class="section-content">
+        <div class="pt-8">
+          <h2 class="mb-2 text-4xl font-bold">动漫</h2>
+          <p class="mb-10 text-gray-500">那些打动过我的作品。</p>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            {animeList.map((a) => (
+              <div class="flex gap-5 rounded-3xl border border-gray-200 bg-stone-50/70 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-violet-100 text-3xl">
+                  {a.emoji}
+                </div>
+                <div>
+                  <h3 class="mb-1 text-xl font-bold">{a.title}</h3>
+                  <p class="text-sm text-gray-400">{a.englishName}</p>
+                  <p class="mt-2 leading-relaxed text-gray-600">{a.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 游戏交流 ========== -->
+      <section id="section-gaming" class="section-content">
+        <div class="pt-8">
+          <h2 class="mb-2 text-4xl font-bold">游戏交流</h2>
+          <p class="mb-10 text-gray-500">关于游戏的热爱与讨论。</p>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            {gamingList.map((g) => (
+              <div class="rounded-3xl border border-gray-200 bg-stone-50/70 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-violet-100 text-2xl">
+                  {g.emoji}
+                </div>
+                <h3 class="mb-2 text-xl font-bold">{g.title}</h3>
+                <p class="leading-relaxed text-gray-600">{g.content}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
     </main>
+
+    <!-- 照片灯箱 -->
+    <div id="lightbox" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+      <button id="lightbox-close" class="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <button id="lightbox-prev" class="absolute left-4 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <img id="lightbox-img" class="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl" />
+      <button id="lightbox-next" class="absolute right-4 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <span id="lightbox-counter" class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1 text-sm text-white/70"></span>
+    </div>
+
+    <template id="playlist-data" set:html={songsJson}></template>
+    <template id="photo-urls" set:html={photoUrlsJson}></template>
+    <template id="project-bg-data" set:html={projectBgJson}></template>
+    <template id="talk-bg-data" set:html={talkBgJson}></template>
+    <template id="photo-cat-data" set:html={photoCatJson}></template>
+    <template id="categories-data" set:html={categoriesJson}></template>
+    <template id="projects-data" set:html={projectsJson}></template>
+    <template id="talks-data" set:html={talksJson}></template>
+    <script>
+      // 导航栏滚动隐藏
+      const header = document.querySelector("header");
+      let lastScroll = 0;
+
+      window.addEventListener("scroll", () => {
+        const currentScroll = window.scrollY;
+        if (currentScroll > lastScroll && currentScroll > 80) {
+          header.classList.add("-translate-y-full");
+        } else {
+          header.classList.remove("-translate-y-full");
+        }
+        lastScroll = currentScroll;
+      });
+
+      // 导航切换逻辑
+      const navLinks = document.querySelectorAll(".nav-link");
+      const sections = document.querySelectorAll(".section-content");
+
+      function switchSection(sectionId) {
+        // 切换 section 显隐
+        sections.forEach((el) => {
+          el.classList.toggle("active", el.id === "section-" + sectionId);
+        });
+
+        // 更新导航高亮
+        navLinks.forEach((btn) => {
+          const isActive = btn.dataset.section === sectionId;
+          btn.classList.toggle("text-blue-600", isActive);
+          btn.classList.toggle("text-gray-500", !isActive);
+        });
+      }
+
+      // 支持 URL hash 定位到对应模块
+      const hash = location.hash.replace('#section-', '');
+      if (hash && ['projects', 'talks', 'photos', 'anime', 'gaming'].includes(hash)) {
+        switchSection(hash);
+        requestAnimationFrame(function() {
+          document.getElementById('section-' + hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+      window.addEventListener('hashchange', function() {
+        const h = location.hash.replace('#section-', '');
+        if (h && ['projects', 'talks', 'photos', 'anime', 'gaming'].includes(h)) {
+          switchSection(h);
+          requestAnimationFrame(function() {
+            document.getElementById('section-' + h)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+      });
+
+      navLinks.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          switchSection(btn.dataset.section);
+        });
+      });
+
+      // "查看全部" 导航按钮
+      document.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.addEventListener('click', () => switchSection(btn.dataset.nav));
+      });
+
+      // 个人名片整块点击跳转
+      document.querySelector('[data-about-card]')?.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        window.location.href = '/about';
+      });
+
+      // ====== 北京时间 ======
+      function updateClock() {
+        const now = new Date();
+        const beijing = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
+        const h = String(beijing.getHours()).padStart(2, '0');
+        const m = String(beijing.getMinutes()).padStart(2, '0');
+        const s = String(beijing.getSeconds()).padStart(2, '0');
+        const y = beijing.getFullYear();
+        const mo = String(beijing.getMonth() + 1).padStart(2, '0');
+        const d = String(beijing.getDate()).padStart(2, '0');
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const wd = weekdays[beijing.getDay()];
+
+        document.getElementById('clock-hour').textContent = h;
+        document.getElementById('clock-min').textContent = m;
+        document.getElementById('clock-sec').textContent = s;
+        document.getElementById('clock-date').textContent = y + '年' + mo + '月' + d + '日';
+        document.getElementById('clock-weekday').textContent = wd;
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      // ====== 背景轮播切换（图片背景 + 文字浮层） ======
+      function createBgCarousel(bgId, captionId, dotsId, items, interval = 10000) {
+        const bgEl = document.getElementById(bgId);
+        const captionEl = document.getElementById(captionId);
+        const dots = document.querySelectorAll('#' + dotsId + ' span');
+        if (!bgEl || !dots.length) return;
+        let index = 0;
+
+        function show(i) {
+          index = (i + items.length) % items.length;
+          const item = items[index];
+          bgEl.style.backgroundImage = 'url(' + item.bg + ')';
+          if (captionEl && item.html) {
+            captionEl.innerHTML = item.html;
+          }
+          dots.forEach((dot, di) => {
+            dot.className = di === index
+              ? 'inline-block h-1.5 w-4 rounded-full bg-white transition-all'
+              : 'inline-block h-1.5 w-1.5 rounded-full bg-white/50 transition-all';
+          });
+        }
+
+        show(0);
+        setInterval(() => show(index + 1), interval);
+      }
+
+      // 项目轮播
+      (function() {
+        const projectBgs = JSON.parse(document.getElementById('project-bg-data')?.innerHTML || '[]');
+        const projects = JSON.parse(document.getElementById('projects-data')?.innerHTML || '[]');
+        if (projectBgs.length > 0 && projects.length > 0) {
+          createBgCarousel('project-bg', 'project-caption', 'project-dots', projects.map(function(p, i) {
+            return {
+              bg: projectBgs[i % projectBgs.length],
+              html: '<div class="flex items-center gap-2"><span class="text-xl">' + p.emoji + '</span><div><p class="text-sm font-bold text-white">' + p.title + '</p><p class="text-xs text-white/70">' + p.description + '</p></div></div>'
+            };
+          }));
+        }
+      })();
+
+      // 照片轮播
+      (function() {
+        const photoUrls = JSON.parse(document.getElementById('photo-urls')?.innerHTML || '[]');
+        if (photoUrls.length > 0) {
+          createBgCarousel('photo-bg', 'photo-caption', 'photo-dots', photoUrls.map((url, i) => ({
+            bg: url,
+            html: '📷 照片 ' + (i + 1)
+          })));
+        }
+      })();
+
+      // 杂谈轮播
+      (function() {
+        const talkBgs = JSON.parse(document.getElementById('talk-bg-data')?.innerHTML || '[]');
+        const talks = JSON.parse(document.getElementById('talks-data')?.innerHTML || '[]');
+        if (talkBgs.length > 0 && talks.length > 0) {
+          createBgCarousel('talk-bg', 'talk-caption', 'talk-dots', talks.map(function(t, i) {
+            return {
+              bg: talkBgs[i % talkBgs.length],
+              html: '<span class="rounded-full bg-white/20 backdrop-blur-sm px-2 py-0.5 text-xs text-white">' + t.tag + '</span><p class="mt-1 text-sm font-bold text-white">' + t.title + '</p><p class="text-xs text-white/60">' + t.date + '</p>'
+            };
+          }));
+        }
+      })();
+
+      // ====== 照片灯箱 ======
+      const photoUrls = JSON.parse(document.getElementById('photo-urls')?.innerHTML || '[]');
+      let lightboxIndex = 0;
+
+      function openLightbox(index) {
+        lightboxIndex = index;
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        const counter = document.getElementById('lightbox-counter');
+        img.src = photoUrls[index];
+        counter.textContent = (index + 1) + ' / ' + photoUrls.length;
+        lb.classList.remove('hidden');
+        lb.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+      }
+
+      document.querySelectorAll('[data-photo-index]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          openLightbox(parseInt(this.dataset.photoIndex));
+        });
+      });
+
+      function closeLightbox() {
+        const lb = document.getElementById('lightbox');
+        lb.classList.add('hidden');
+        lb.classList.remove('flex');
+        document.body.style.overflow = '';
+      }
+
+      function navigateLightbox(dir) {
+        lightboxIndex = (lightboxIndex + dir + photoUrls.length) % photoUrls.length;
+        const img = document.getElementById('lightbox-img');
+        const counter = document.getElementById('lightbox-counter');
+        img.src = photoUrls[lightboxIndex];
+        counter.textContent = (lightboxIndex + 1) + ' / ' + photoUrls.length;
+      }
+
+      document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+      document.getElementById('lightbox-prev').addEventListener('click', function() { navigateLightbox(-1); });
+      document.getElementById('lightbox-next').addEventListener('click', function() { navigateLightbox(1); });
+      document.getElementById('lightbox').addEventListener('click', function(e) {
+        if (e.target === this) closeLightbox();
+      });
+      document.addEventListener('keydown', function(e) {
+        const lb = document.getElementById('lightbox');
+        if (lb.classList.contains('hidden')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') navigateLightbox(-1);
+        if (e.key === 'ArrowRight') navigateLightbox(1);
+      });
+
+      // ====== 照片分类切换 ======
+      document.getElementById('photo-categories').addEventListener('click', function(e) {
+        const btn = e.target.closest('.photo-cat-btn');
+        if (!btn) return;
+        this.querySelectorAll('.photo-cat-btn').forEach(function(b) {
+          b.className = 'photo-cat-btn rounded-full px-4 py-1.5 text-sm font-medium transition cursor-pointer ' +
+            (b === btn ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200');
+        });
+        const cat = btn.dataset.cat;
+        document.querySelectorAll('#photo-grid [data-photo-index]').forEach(function(el) {
+          el.style.display = cat === '全部' || el.dataset.cat === cat ? '' : 'none';
+        });
+      });
+
+      // ====== 音乐播放器 ======
+      const songs = JSON.parse(document.getElementById('playlist-data')?.innerHTML || '[]');
+      if (songs.length > 0) {
+        const audio = new Audio();
+        let isPlaying = false;
+        let currentIndex = -1;
+
+        const disc = document.getElementById('record-disc');
+        const albumArt = document.getElementById('album-art');
+        const songName = document.getElementById('song-name');
+        const artistName = document.getElementById('artist-name');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalTimeEl = document.getElementById('total-time');
+
+        let discAngle = 0;
+        let rotationInterval = null;
+
+        function formatTime(s) {
+          const m = Math.floor(s / 60);
+          const sec = Math.floor(s % 60);
+          return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        function loadSong(index) {
+          const song = songs[index];
+          currentIndex = index;
+          songName.textContent = song.name;
+          artistName.textContent = song.artists;
+          albumArt.src = song.picUrl;
+          audio.src = 'https://music.163.com/song/media/outer/url?id=' + song.id + '.mp3';
+          audio.load();
+          totalTimeEl.textContent = formatTime(song.duration / 1000);
+          progressFill.style.width = '0%';
+          currentTimeEl.textContent = '0:00';
+
+          // Reset rotation
+          if (disc) disc.style.transform = 'rotate(0deg)';
+          discAngle = 0;
+        }
+
+        function play() {
+          audio.play().catch(() => {});
+          isPlaying = true;
+          playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+          // Start spinning
+          if (rotationInterval) clearInterval(rotationInterval);
+          rotationInterval = setInterval(() => {
+            discAngle = (discAngle + 1) % 360;
+            if (disc) disc.style.transform = 'rotate(' + discAngle + 'deg)';
+          }, 50);
+        }
+
+        function pause() {
+          audio.pause();
+          isPlaying = false;
+          playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+          if (rotationInterval) {
+            clearInterval(rotationInterval);
+            rotationInterval = null;
+          }
+        }
+
+        function togglePlay() {
+          if (isPlaying) pause();
+          else play();
+        }
+
+        function randomSong() {
+          let newIndex;
+          do {
+            newIndex = Math.floor(Math.random() * songs.length);
+          } while (newIndex === currentIndex && songs.length > 1);
+          loadSong(newIndex);
+          if (isPlaying) play();
+          else {
+            // Show song info even when not playing
+          }
+        }
+
+        // Load a random song on start
+        currentIndex = Math.floor(Math.random() * songs.length);
+        loadSong(currentIndex);
+
+        // ====== 自动播放音乐（浏览器可能拦截，首次交互时启动） ======
+        function startPlayback() {
+          play();
+        }
+        var autoPromise = audio.play();
+        if (autoPromise !== undefined) {
+          autoPromise.then(startPlayback).catch(function() {
+            var firstTap = function() {
+              startPlayback();
+              document.removeEventListener('click', firstTap);
+              document.removeEventListener('touchstart', firstTap);
+            };
+            document.addEventListener('click', firstTap);
+            document.addEventListener('touchstart', firstTap);
+          });
+        }
+
+        // Event listeners
+        playBtn.addEventListener('click', togglePlay);
+
+        nextBtn.addEventListener('click', () => {
+          randomSong();
+          if (!isPlaying) play();
+        });
+
+        prevBtn.addEventListener('click', () => {
+          randomSong();
+          if (!isPlaying) play();
+        });
+
+        audio.addEventListener('timeupdate', () => {
+          if (audio.duration) {
+            const pct = (audio.currentTime / audio.duration) * 100;
+            progressFill.style.width = pct + '%';
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+          }
+        });
+
+        audio.addEventListener('ended', () => {
+          randomSong();
+          play();
+        });
+
+        progressBar.addEventListener('click', (e) => {
+          const rect = progressBar.getBoundingClientRect();
+          const pct = (e.clientX - rect.left) / rect.width;
+          audio.currentTime = pct * audio.duration;
+        });
+
+        // Handle loading errors - skip to next
+        audio.addEventListener('error', () => {
+          setTimeout(randomSong, 1000);
+        });
+
+        // ====== 拖拽移动 ======
+        const player = document.getElementById('music-player');
+        let isDragging = false;
+        let hasMoved = false;
+        let startX, startY, origLeft, origTop;
+
+        player.addEventListener('pointerdown', (e) => {
+          if (e.target.closest('button')) return;
+          const rect = player.getBoundingClientRect();
+          player.style.left = rect.left + 'px';
+          player.style.top = rect.top + 'px';
+          player.style.right = 'auto';
+          startX = e.clientX;
+          startY = e.clientY;
+          origLeft = rect.left;
+          origTop = rect.top;
+          isDragging = true;
+          hasMoved = false;
+          player.setPointerCapture(e.pointerId);
+        });
+
+        player.addEventListener('pointermove', (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+          player.style.left = (origLeft + dx) + 'px';
+          player.style.top = (origTop + dy) + 'px';
+        });
+
+        player.addEventListener('pointerup', () => {
+          isDragging = false;
+        });
+
+        // ====== 双击展开/折叠 ======
+        player.addEventListener('dblclick', (e) => {
+          if (e.target.closest('button')) return;
+          const expanded = player.classList.toggle('expanded');
+          if (expanded) {
+            player.style.width = '20rem';
+            artistName.classList.remove('sr-only');
+          } else {
+            player.style.width = '';
+            artistName.classList.add('sr-only');
+          }
+        });
+      }
+    </script>
+
+    <script>
+      // ====== 视觉特效引擎 ======
+      // 包含：星野 · 流星 · 萤火虫 · 彩虹雨 · 环境光晕 · 浮游光点
+      (function() {
+        var cvs = document.getElementById('effects-canvas');
+        if (!cvs) return;
+        var ctx = cvs.getContext('2d');
+        var W, H;
+
+        function fit() {
+          W = cvs.width = window.innerWidth;
+          H = cvs.height = window.innerHeight;
+        }
+        fit();
+        window.addEventListener('resize', fit);
+
+        // ========== 1. 环境光晕 (大尺寸彩色柔光球，缓慢漂移) ==========
+        var orbs = [];
+        var orbColors = [
+          { h: 210, s: 60, l: 75 },  // 淡蓝
+          { h: 270, s: 50, l: 75 },  // 淡紫
+          { h: 180, s: 50, l: 75 },  // 淡青
+          { h: 330, s: 40, l: 80 },  // 淡粉
+          { h: 45,  s: 50, l: 80 },  // 淡金
+        ];
+        for (var o = 0; o < 8; o++) {
+          var c = orbColors[o % orbColors.length];
+          orbs.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: 100 + Math.random() * 150,
+            vx: (Math.random() - 0.5) * 0.1,
+            vy: (Math.random() - 0.5) * 0.1,
+            alpha: 0.06 + Math.random() * 0.06,
+            hue: c.h,
+            sat: c.s,
+            lig: c.l,
+          });
+        }
+
+        // ========== 2. 星野 ==========
+        var stars = [];
+        for (var s = 0; s < 150; s++) {
+          var isBright = Math.random() > 0.85;
+          stars.push({
+            x: Math.random() * W,
+            y: Math.random() * H * 0.75,
+            r: isBright ? 1.5 + Math.random() * 2 : 0.5 + Math.random() * 1,
+            speed: Math.random() * 0.02 + 0.005,
+            phase: Math.random() * Math.PI * 2,
+            bright: isBright,
+          });
+        }
+
+        // ========== 3. 流星 ==========
+        var comets = [];
+        var cometTimer = Math.random() * 120 + 80;
+
+        // ========== 4. 萤火虫 ==========
+        var bugs = [];
+        for (var b = 0; b < 30; b++) {
+          bugs.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: 1.5 + Math.random() * 2,
+            speed: Math.random() * 0.015 + 0.006,
+            phase: Math.random() * Math.PI * 2,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            glowSize: 35 + Math.random() * 25,
+            hue: 45 + Math.random() * 20,  // 暖黄 ~ 金黄
+          });
+        }
+
+        // ========== 5. 彩虹雨 ==========
+        var hues = [0, 25, 50, 120, 195, 250, 310];
+        var rain = [];
+        for (var r = 0; r < 50; r++) {
+          rain.push({
+            x: Math.random() * W,
+            y: -Math.random() * H,
+            len: 8 + Math.random() * 18,
+            speed: 1.5 + Math.random() * 3,
+            alpha: 0.15 + Math.random() * 0.25,
+            hue: hues[Math.floor(Math.random() * hues.length)],
+            sway: Math.random() * 200,
+          });
+        }
+
+        // ========== 6. 浮游光点 ==========
+        var sparkles = [];
+        for (var p = 0; p < 40; p++) {
+          sparkles.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: 0.5 + Math.random() * 1.2,
+            speed: 0.2 + Math.random() * 0.5,
+            drift: (Math.random() - 0.5) * 0.2,
+            alpha: 0.2 + Math.random() * 0.4,
+            phase: Math.random() * Math.PI * 2,
+          });
+        }
+
+        // ========== 7. 点击水波 ==========
+        var ripples = [];
+        cvs.addEventListener('click', function(e) {
+          var rect = cvs.getBoundingClientRect();
+          var cx = e.clientX - rect.left;
+          var cy = e.clientY - rect.top;
+          // 每次点击生成 3 个同心环
+          for (var w = 0; w < 3; w++) {
+            ripples.push({
+              x: cx,
+              y: cy,
+              r: 5 + w * 8,         // 起始半径略错开
+              maxR: 60 + Math.random() * 40 + w * 20,
+              speed: 2 + Math.random() * 1.5,
+              alpha: 0.6 - w * 0.12,
+              hue: 210 + Math.random() * 60,  // 蓝~紫色系
+              width: 2.5 - w * 0.4,
+            });
+          }
+        });
+        // 触摸支持
+        cvs.addEventListener('touchstart', function(e) {
+          var touch = e.touches[0];
+          if (!touch) return;
+          var rect = cvs.getBoundingClientRect();
+          var cx = touch.clientX - rect.left;
+          var cy = touch.clientY - rect.top;
+          for (var w = 0; w < 3; w++) {
+            ripples.push({
+              x: cx, y: cy,
+              r: 5 + w * 8,
+              maxR: 60 + Math.random() * 40 + w * 20,
+              speed: 2 + Math.random() * 1.5,
+              alpha: 0.6 - w * 0.12,
+              hue: 210 + Math.random() * 60,
+              width: 2.5 - w * 0.4,
+            });
+          }
+        }, { passive: true });
+
+        var frame = 0;
+        var hidden = false;
+        document.addEventListener('visibilitychange', function() { hidden = document.hidden; });
+
+        function loop() {
+          if (hidden) { requestAnimationFrame(loop); return; }
+          ctx.clearRect(0, 0, W, H);
+          frame++;
+
+          // ------ 1. 环境光晕 (先画，作为底层氛围) ------
+          for (var oI = 0; oI < orbs.length; oI++) {
+            var o = orbs[oI];
+            o.x += o.vx;
+            o.y += o.vy;
+            if (o.x < -o.r) o.x = W + o.r;
+            if (o.x > W + o.r) o.x = -o.r;
+            if (o.y < -o.r) o.y = H + o.r;
+            if (o.y > H + o.r) o.y = -o.r;
+
+            var grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+            grad.addColorStop(0, 'hsla(' + o.hue + ',' + o.sat + '%,' + o.lig + '%,' + o.alpha + ')');
+            grad.addColorStop(1, 'hsla(' + o.hue + ',' + o.sat + '%,' + o.lig + '%,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2);
+          }
+
+          // ------ 2. 星星 ------
+          for (var sI = 0; sI < stars.length; sI++) {
+            var st = stars[sI];
+            var a = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(frame * st.speed + st.phase));
+            if (st.bright) {
+              a += 0.2; // 亮星更亮
+              // 亮星光晕
+              var gSt = ctx.createRadialGradient(st.x, st.y, 0, st.x, st.y, 8);
+              gSt.addColorStop(0, 'rgba(200,220,255,' + (a * 0.12) + ')');
+              gSt.addColorStop(1, 'rgba(200,220,255,0)');
+              ctx.fillStyle = gSt;
+              ctx.fillRect(st.x - 8, st.y - 8, 16, 16);
+            }
+            ctx.beginPath();
+            ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,' + a + ')';
+            ctx.fill();
+          }
+
+          // ------ 3. 流星 ------
+          cometTimer--;
+          if (cometTimer <= 0) {
+            if (comets.length < 2) {
+              var startX = Math.random() * W * 0.7;
+              var startY = Math.random() * H * 0.25;
+              var angle = Math.PI / 3.5 + (Math.random() - 0.5) * 0.35;
+              var len = 80 + Math.random() * 80;
+              var speed = 10 + Math.random() * 8;
+              comets.push({
+                x: startX,
+                y: startY,
+                len: len,
+                speed: speed,
+                angle: angle,
+                life: 1,
+                trail: [],  // 拖尾历史
+              });
+            }
+            cometTimer = 150 + Math.random() * 200;
+          }
+
+          for (var cI = comets.length - 1; cI >= 0; cI--) {
+            var c = comets[cI];
+            c.x += Math.cos(c.angle) * c.speed;
+            c.y += Math.sin(c.angle) * c.speed;
+            c.life -= 0.015;
+            c.trail.push({ x: c.x, y: c.y, life: 1 });
+
+            // 限制 trail 长度
+            if (c.trail.length > 15) c.trail.shift();
+
+            if (c.life <= 0 || c.x > W + 50 || c.y > H + 50) {
+              comets.splice(cI, 1);
+              continue;
+            }
+
+            var a = c.life * 0.7;
+
+            // 拖尾渐变
+            for (var tI = 0; tI < c.trail.length; tI++) {
+              var t = c.trail[tI];
+              t.life -= 0.06;
+              if (t.life <= 0) continue;
+              ctx.beginPath();
+              ctx.arc(t.x, t.y, 1.5 * t.life, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(180,210,255,' + (a * t.life * 0.3) + ')';
+              ctx.fill();
+            }
+
+            // 流星主体 (亮白色渐变)
+            var gradC = ctx.createLinearGradient(c.x, c.y, c.x - Math.cos(c.angle) * c.len, c.y - Math.sin(c.angle) * c.len);
+            gradC.addColorStop(0, 'rgba(255,255,255,' + a + ')');
+            gradC.addColorStop(0.3, 'rgba(200,220,255,' + (a * 0.6) + ')');
+            gradC.addColorStop(1, 'rgba(200,220,255,0)');
+            ctx.beginPath();
+            ctx.moveTo(c.x, c.y);
+            ctx.lineTo(c.x - Math.cos(c.angle) * c.len, c.y - Math.sin(c.angle) * c.len);
+            ctx.strokeStyle = gradC;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // 流星头部光晕
+            var gCom = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 12);
+            gCom.addColorStop(0, 'rgba(255,255,255,' + (a * 0.5) + ')');
+            gCom.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = gCom;
+            ctx.fillRect(c.x - 12, c.y - 12, 24, 24);
+
+            // 头部亮点
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,' + (a * 0.9) + ')';
+            ctx.fill();
+          }
+
+          // ------ 4. 萤火虫 ------
+          for (var bI = 0; bI < bugs.length; bI++) {
+            var bug = bugs[bI];
+            bug.vx += (Math.random() - 0.5) * 0.06;
+            bug.vy += (Math.random() - 0.5) * 0.06;
+            bug.vx *= 0.94;
+            bug.vy *= 0.94;
+            bug.x += bug.vx;
+            bug.y += bug.vy;
+            if (bug.x < 0) bug.x = W;
+            if (bug.x > W) bug.x = 0;
+            if (bug.y < 0) bug.y = H;
+            if (bug.y > H) bug.y = 0;
+
+            var ba = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(frame * bug.speed + bug.phase));
+
+            // 大范围暖光晕 (加强)
+            var gBug = ctx.createRadialGradient(bug.x, bug.y, 0, bug.x, bug.y, bug.glowSize);
+            gBug.addColorStop(0, 'hsla(' + bug.hue + ',85%,78%,' + (ba * 0.55) + ')');
+            gBug.addColorStop(0.4, 'hsla(' + bug.hue + ',85%,78%,' + (ba * 0.25) + ')');
+            gBug.addColorStop(1, 'hsla(' + bug.hue + ',85%,78%,0)');
+            ctx.fillStyle = gBug;
+            ctx.fillRect(bug.x - bug.glowSize, bug.y - bug.glowSize, bug.glowSize * 2, bug.glowSize * 2);
+
+            // 内层光晕 (加强)
+            var gBug2 = ctx.createRadialGradient(bug.x, bug.y, 0, bug.x, bug.y, bug.glowSize * 0.35);
+            gBug2.addColorStop(0, 'hsla(55,100%,92%,' + (ba * 0.8) + ')');
+            gBug2.addColorStop(1, 'hsla(55,100%,92%,0)');
+            ctx.fillStyle = gBug2;
+            ctx.fillRect(bug.x - bug.glowSize * 0.35, bug.y - bug.glowSize * 0.35, bug.glowSize * 0.7, bug.glowSize * 0.7);
+
+            // 虫体 (更亮)
+            ctx.beginPath();
+            ctx.arc(bug.x, bug.y, bug.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'hsla(55,100%,98%,' + (ba * 0.9) + ')';
+            ctx.fill();
+
+            // 虫体核心高光
+            ctx.beginPath();
+            ctx.arc(bug.x - bug.r * 0.2, bug.y - bug.r * 0.2, bug.r * 0.35, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,' + (ba * 0.6) + ')';
+            ctx.fill();
+          }
+
+          // ------ 5. 彩虹雨 ------
+          for (var rI = 0; rI < rain.length; rI++) {
+            var rd = rain[rI];
+            rd.y += rd.speed;
+            rd.x += Math.sin(frame * 0.03 + rd.sway) * 0.2;
+            if (rd.y > H + 20) {
+              rd.y = -rd.len - 10;
+              rd.x = Math.random() * W;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(rd.x, rd.y);
+            ctx.lineTo(rd.x + Math.sin(frame * 0.02 + rd.sway) * 0.4, rd.y + rd.len);
+            ctx.strokeStyle = 'hsla(' + rd.hue + ',75%,72%,' + rd.alpha + ')';
+            ctx.lineWidth = 1.8;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // 雨滴尾部发光
+            var gRain = ctx.createRadialGradient(rd.x, rd.y + rd.len, 0, rd.x, rd.y + rd.len, 3);
+            gRain.addColorStop(0, 'hsla(' + rd.hue + ',75%,72%,' + (rd.alpha * 0.3) + ')');
+            gRain.addColorStop(1, 'hsla(' + rd.hue + ',75%,72%,0)');
+            ctx.fillStyle = gRain;
+            ctx.fillRect(rd.x - 3, rd.y + rd.len - 3, 6, 6);
+          }
+
+          // ------ 6. 浮游光点 ------
+          for (var pI = 0; pI < sparkles.length; pI++) {
+            var sp = sparkles[pI];
+            sp.y -= sp.speed;
+            sp.x += sp.drift + Math.sin(frame * 0.01 + sp.phase) * 0.1;
+            if (sp.y < -10) {
+              sp.y = H + 10;
+              sp.x = Math.random() * W;
+            }
+            if (sp.x < -10) sp.x = W + 10;
+            if (sp.x > W + 10) sp.x = -10;
+
+            var spa = sp.alpha * (0.6 + 0.4 * Math.sin(frame * 0.02 + sp.phase));
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,' + spa + ')';
+            ctx.fill();
+          }
+
+          // ------ 7. 水波涟漪 ------
+          for (var wI = ripples.length - 1; wI >= 0; wI--) {
+            var wv = ripples[wI];
+            wv.r += wv.speed;
+            wv.alpha *= 0.985;
+            if (wv.r > wv.maxR || wv.alpha < 0.01) { ripples.splice(wI, 1); continue; }
+
+            // 外发光
+            var gWv = ctx.createRadialGradient(wv.x, wv.y, wv.r * 0.7, wv.x, wv.y, wv.r);
+            gWv.addColorStop(0, 'hsla(' + wv.hue + ',70%,75%,0)');
+            gWv.addColorStop(0.5, 'hsla(' + wv.hue + ',70%,75%,' + (wv.alpha * 0.15) + ')');
+            gWv.addColorStop(1, 'hsla(' + wv.hue + ',70%,75%,0)');
+            ctx.fillStyle = gWv;
+            ctx.fillRect(wv.x - wv.r, wv.y - wv.r, wv.r * 2, wv.r * 2);
+
+            // 波纹圆圈
+            ctx.beginPath();
+            ctx.arc(wv.x, wv.y, wv.r, 0, Math.PI * 2);
+            ctx.strokeStyle = 'hsla(' + wv.hue + ',65%,80%,' + wv.alpha + ')';
+            ctx.lineWidth = wv.width;
+            ctx.stroke();
+
+            // 内圈 (更亮)
+            ctx.beginPath();
+            ctx.arc(wv.x, wv.y, wv.r * 0.7, 0, Math.PI * 2);
+            ctx.strokeStyle = 'hsla(210,80%,90%,' + (wv.alpha * 0.4) + ')';
+            ctx.lineWidth = wv.width * 0.5;
+            ctx.stroke();
+          }
+
+          requestAnimationFrame(loop);
+        }
+        loop();
+      })();
+    </script>
+
   </body>
 </html>

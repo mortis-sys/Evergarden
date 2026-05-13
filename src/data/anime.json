@@ -1,0 +1,37 @@
+[
+  {
+    "slug": "violet-evergarden",
+    "title": "紫罗兰永恒花园",
+    "englishName": "Violet Evergarden",
+    "emoji": "🌸",
+    "description": "自动手记人偶的故事。每集都是一封信，每封信都是一段人生。最美的动画之一。"
+  },
+  {
+    "slug": "natsume",
+    "title": "夏目友人帐",
+    "englishName": "Natsume's Book of Friends",
+    "emoji": "🎋",
+    "description": "温柔的妖怪故事。夏目和猫老师的日常，温暖得让人想哭。"
+  },
+  {
+    "slug": "cowboy-bebop",
+    "title": "星际牛仔",
+    "englishName": "Cowboy Bebop",
+    "emoji": "🚀",
+    "description": "太空爵士、赏金猎人与孤独。See you, space cowboy."
+  },
+  {
+    "slug": "laid-back-camp",
+    "title": "摇曳露营",
+    "englishName": "Laid-Back Camp",
+    "emoji": "🌊",
+    "description": "一个人、一顶帐篷、一片星空。最治愈的露营动画。"
+  },
+  {
+    "slug": "四月是你的谎言",
+    "title": "四月是你的谎言",
+    "emoji": "🌸",
+    "englishName": "April is your idea",
+    "description": "今生无悔四月谎，来世还做友人A"
+  }
+]

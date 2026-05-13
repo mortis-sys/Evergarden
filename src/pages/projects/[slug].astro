@@ -1,0 +1,75 @@
+---
+import "../../styles/global.css";
+import bgImage from "../../assets/bg.png";
+import projects from "../../data/projects.json";
+
+export async function getStaticPaths() {
+  return projects.map((p) => ({
+    params: { slug: p.slug },
+    props: p,
+  }));
+}
+
+const { slug, title, emoji, tag, status, description, content } = Astro.props;
+const lines = content.trim().split("\n");
+---
+
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title} · Evergarden</title>
+  </head>
+
+  <body class="min-h-screen overflow-x-hidden">
+    <div class="fixed inset-0 -z-20">
+      <img src={bgImage.src} alt="" class="h-full w-full object-cover object-[center_25%]" />
+    </div>
+    <div class="fixed inset-0 -z-10 bg-white/50"></div>
+
+    <!-- 导航 -->
+    <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-200/50 bg-white/40">
+      <nav class="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+        <a href="/#section-projects" class="text-lg font-medium text-gray-500 hover:text-gray-700 transition">&larr; 返回项目</a>
+        <span class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-lg font-bold text-transparent">
+          Evergarden
+        </span>
+      </nav>
+    </header>
+
+    <main class="mx-auto max-w-4xl px-6 pt-24 pb-20">
+      <div class="rounded-3xl border border-gray-200 bg-stone-50/70 p-8 shadow-sm">
+        <div class="mb-6 flex items-center gap-4">
+          <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-violet-100 text-3xl">
+            {emoji}
+          </span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-3xl font-bold">{title}</h1>
+              <span class="rounded-full bg-blue-100 px-3 py-0.5 text-xs text-blue-600">{tag}</span>
+            </div>
+            <p class="mt-1 text-sm text-gray-400">{status}</p>
+          </div>
+        </div>
+
+        <p class="mb-6 text-lg leading-relaxed text-gray-600 border-l-4 border-violet-300 pl-4">
+          {description}
+        </p>
+
+        <div class="space-y-3 text-gray-600 leading-relaxed">
+          {lines.map((line) =>
+            line === "" ? (
+              <br />
+            ) : line.startsWith("游戏特色：") || line.startsWith("技术栈：") || line.startsWith("设计理念：") ? (
+              <h3 class="pt-2 text-lg font-bold text-gray-800">{line}</h3>
+            ) : line.startsWith("- ") ? (
+              <p class="pl-4 text-gray-500">• {line.slice(2)}</p>
+            ) : (
+              <p>{line}</p>
+            )
+          )}
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

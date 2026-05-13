@@ -1,0 +1,199 @@
+---
+import "../styles/global.css";
+import bgImage from "../assets/bg.png";
+import headImage from "../assets/head.jpg";
+---
+
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>陈懿航 · 个人主页</title>
+  </head>
+
+  <body class="min-h-screen overflow-x-hidden">
+    <!-- 背景 -->
+    <div class="fixed inset-0 -z-20">
+      <img src={bgImage.src} alt="" class="h-full w-full object-cover object-[center_25%]" />
+    </div>
+    <div class="fixed inset-0 -z-10 bg-white/50"></div>
+
+    <!-- 导航 -->
+    <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-200/50 bg-white/40">
+      <nav class="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+        <a href="/" class="text-lg font-medium text-gray-500 hover:text-gray-700 transition">&larr; 返回主页</a>
+        <span class="bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 bg-clip-text text-lg font-bold text-transparent">
+          陈懿航
+        </span>
+      </nav>
+    </header>
+
+    <main class="mx-auto max-w-4xl px-6 pt-24 pb-20">
+      <!-- 头部区域 -->
+      <div class="flex flex-col items-center pt-8 text-center">
+        <img src={headImage.src} alt="陈懿航" class="h-28 w-28 rounded-full object-cover shadow-lg ring-4 ring-white/80" />
+        <h1 class="mt-6 text-4xl font-bold">陈懿航</h1>
+        <p class="mt-1 text-gray-400">哈尔滨工业大学（深圳）· 大一 · 计算机与通信技术</p>
+        <p class="mx-auto mt-2 max-w-lg text-gray-500">
+          热爱游戏与设计，希望通过游戏传递情感，给予人们故事的温存与感动。
+        </p>
+      </div>
+
+      <!-- 信息卡片 -->
+      <div class="mt-12 space-y-6">
+
+        <!-- 个人简介 -->
+        <div class="rounded-3xl border border-gray-200 bg-stone-50/70 p-8 shadow-sm">
+          <h2 class="mb-4 text-2xl font-bold">个人简介</h2>
+          <p class="leading-relaxed text-gray-600">
+            本人热爱游戏，受动漫和原神的影响重塑了对游戏的认识。希望通过游戏传递情感，给予人们故事的温存与感动。
+            目前正在持续学习和尝试制作不同类型的游戏，探索 AI、设计与游戏开发的交汇点。
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-600">Game Dev</span>
+            <span class="rounded-full bg-violet-100 px-3 py-1 text-xs text-violet-600">Unity / Godot</span>
+            <span class="rounded-full bg-sky-100 px-3 py-1 text-xs text-sky-600">C / C++</span>
+            <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-600">C#</span>
+            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-600">Level Design</span>
+          </div>
+        </div>
+
+        <!-- 教育背景 -->
+        <div class="rounded-3xl border border-gray-200 bg-stone-50/70 p-8 shadow-sm">
+          <h2 class="mb-4 text-2xl font-bold">教育背景</h2>
+          <div class="flex items-start gap-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-violet-100 text-xl">
+              🎓
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-gray-800">哈尔滨工业大学（深圳）</h3>
+              <p class="text-sm text-gray-400">工科实验班（计算机与通信技术）· 大一在读</p>
+              <p class="mt-2 text-sm text-gray-500">
+                学分绩前 10% · 高中数学竞赛省奖 · 校学生会成员 · 数理社社长 · 9 年班长经历
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 个人优势 -->
+        <div class="rounded-3xl border border-gray-200 bg-stone-50/70 p-8 shadow-sm">
+          <h2 class="mb-4 text-2xl font-bold">个人优势</h2>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="flex items-start gap-3">
+              <span class="mt-0.5 text-lg">🎮</span>
+              <div>
+                <h3 class="font-medium text-gray-700">游戏引擎</h3>
+                <p class="text-sm text-gray-400">熟悉 Unity、Godot，了解 UE 引擎</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="mt-0.5 text-lg">🤝</span>
+              <div>
+                <h3 class="font-medium text-gray-700">团队协作</h3>
+                <p class="text-sm text-gray-400">校学生会成员、数理社社长、9 年班长，沟通与团队合作能力强</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="mt-0.5 text-lg">🧠</span>
+              <div>
+                <h3 class="font-medium text-gray-700">学习能力</h3>
+                <p class="text-sm text-gray-400">高中数学竞赛省奖，学分绩前 10%，持续学习游戏开发</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="mt-0.5 text-lg">💡</span>
+              <div>
+                <h3 class="font-medium text-gray-700">关卡设计</h3>
+                <p class="text-sm text-gray-400">对开放世界与 Roguelike 关卡设计有独特理解，想象力丰富</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 技能掌握 -->
+        <div class="rounded-3xl border border-gray-200 bg-stone-50/70 p-8 shadow-sm">
+          <h2 class="mb-4 text-2xl font-bold">技能掌握</h2>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h3 class="font-medium text-gray-700">编程语言</h3>
+              <p class="text-sm text-gray-400">C / C++（熟练掌握）· C#（游戏开发）</p>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-700">游戏引擎</h3>
+              <p class="text-sm text-gray-400">Unity · Godot · UE（了解）</p>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-700">前端 / 设计</h3>
+              <p class="text-sm text-gray-400">Astro · Tailwind · UI/UX 设计</p>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-700">AI / 工具链</h3>
+              <p class="text-sm text-gray-400">LLM 应用 · Git · VS Code · Figma · Claude Code</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 游戏开发经历 -->
+        <div class="rounded-3xl border border-gray-200 bg-stone-50/70 p-8 shadow-sm">
+          <h2 class="mb-4 text-2xl font-bold">游戏开发经历</h2>
+          <div class="space-y-4">
+            <div class="flex items-start gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-cyan-100 text-lg">
+                🌿
+              </div>
+              <div>
+                <h3 class="font-bold text-gray-800">《凯巴莱恩》</h3>
+                <p class="text-sm text-gray-400">2D 横版生存游戏 · C# + Unity</p>
+                <p class="mt-1 text-sm text-gray-500">大一期间开发的 2D 横版生存游戏，探索生存玩法与像素美术的结合。</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 text-lg">
+                ⚡
+              </div>
+              <div>
+                <h3 class="font-bold text-gray-800">《闪击》</h3>
+                <p class="text-sm text-gray-400">闪避弹幕游戏</p>
+                <p class="mt-1 text-sm text-gray-500">以高速闪避为核心的弹幕游戏，考验玩家的反应与操作。</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 text-lg">
+                🐉
+              </div>
+              <div>
+                <h3 class="font-bold text-gray-800">《百面奶龙》</h3>
+                <p class="text-sm text-gray-400">文字生存游戏</p>
+                <p class="mt-1 text-sm text-gray-500">基于文字选择的生存游戏，注重叙事与决策的趣味性。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 联系方式 -->
+        <div class="rounded-3xl border border-gray-200 bg-stone-50/70 p-8 shadow-sm">
+          <h2 class="mb-4 text-2xl font-bold">联系方式</h2>
+          <div class="space-y-3 text-sm text-gray-500">
+            <p class="flex items-center gap-2">
+              <span class="text-base">📧</span>
+              <span>3382397355@qq.com</span>
+            </p>
+            <p class="flex items-center gap-2">
+              <span class="text-base">📱</span>
+              <span>135-5965-5208</span>
+            </p>
+            <p class="flex items-center gap-2">
+              <span class="text-base">🐙</span>
+              <span>GitHub: <a href="https://github.com/mortis-sys" class="text-blue-500 hover:underline" target="_blank">mortis-sys</a></span>
+            </p>
+            <p class="flex items-center gap-2">
+              <span class="text-base">🌐</span>
+              <span>站点：<a href="https://evergarden-czt.pages.dev" class="text-blue-500 hover:underline" target="_blank">Evergarden</a></span>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </body>
+</html>
