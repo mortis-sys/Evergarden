@@ -36,9 +36,13 @@ Object.entries(photoModules).forEach(([path, mod]) => {
 });
 const fallbackBg = photoEntries[0];
 
-// 按每个条目的 image 字段获取配图
-const projectBgImages = projects.map((p) => photoMap[p.image] || fallbackBg);
-const talkBgImages = talks.map((t) => photoMap[t.image] || fallbackBg);
+// 取 images 数组第一张（兼容旧 image 字段）
+function firstImg(item) {
+  const list = item.images || (item.image ? [item.image] : []);
+  return photoMap[list[0]] || fallbackBg;
+}
+const projectBgImages = projects.map(firstImg);
+const talkBgImages = talks.map(firstImg);
 const [projBg1, projBg2, projBg3, projBg4, projBg5] = projectBgImages;
 const [talkBg1, talkBg2, talkBg3, talkBg4] = talkBgImages;
 const projectBgJson = JSON.stringify(projectBgImages);

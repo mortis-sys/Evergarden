@@ -3,6 +3,12 @@ import "../../styles/global.css";
 import bgImage from "../../assets/bg.png";
 import projects from "../../data/projects.json";
 
+const photoModules = import.meta.glob('../../photos/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
+const photoMap = {};
+Object.entries(photoModules).forEach(([path, mod]) => {
+  photoMap[path.split('/').pop()] = mod.src;
+});
+
 export async function getStaticPaths() {
   return projects.map((p) => ({
     params: { slug: p.slug },
@@ -10,8 +16,11 @@ export async function getStaticPaths() {
   }));
 }
 
-const { slug, title, emoji, tag, status, description, content } = Astro.props;
+const { slug, title, emoji, tag, status, description, content, images } = Astro.props;
+const imgList = (images || []).map((f) => photoMap[f]).filter(Boolean);
 const lines = content.trim().split("\n");
+const hasImages = imgList.length > 0;
+const imagesJson = JSON.stringify(imgList);
 ---
 
 <html lang="zh">
@@ -69,7 +78,97 @@ const lines = content.trim().split("\n");
             )
           )}
         </div>
+
+        <!-- 图片画廊 -->
+        {hasImages && (
+          <div class="mt-10">
+            <h3 class="mb-4 text-lg font-bold text-gray-800 flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              图片
+            </h3>
+            <div class="grid gap-4 sm:grid-cols-2">
+              {imgList.map((src, i) => (
+                <button data-gallery-index={i} class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md cursor-pointer text-left">
+                  <img src={src} alt="" class="h-auto w-full object-cover" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </main>
+
+    <!-- 图集灯箱 -->
+    {hasImages && (
+      <>
+        <div id="gallery-lightbox" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+          <button id="glb-close" class="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button id="glb-prev" class="absolute left-4 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <img id="glb-img" class="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl" />
+          <button id="glb-next" class="absolute right-4 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <span id="glb-counter" class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1 text-sm text-white/70"></span>
+        </div>
+
+        <template id="gallery-images" set:html={imagesJson}></template>
+        <script>
+          (function() {
+            const images = JSON.parse(document.getElementById('gallery-images')?.innerHTML || '[]');
+            if (!images.length) return;
+            let index = 0;
+            const lb = document.getElementById('gallery-lightbox');
+            const img = document.getElementById('glb-img');
+            const counter = document.getElementById('glb-counter');
+
+            document.querySelectorAll('[data-gallery-index]').forEach(function(el) {
+              el.addEventListener('click', function() {
+                index = parseInt(this.dataset.galleryIndex);
+                show();
+                lb.classList.remove('hidden');
+                lb.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+              });
+            });
+
+            function show() {
+              img.src = images[index];
+              counter.textContent = (index + 1) + ' / ' + images.length;
+            }
+
+            document.getElementById('glb-close').addEventListener('click', function() {
+              lb.classList.add('hidden');
+              lb.classList.remove('flex');
+              document.body.style.overflow = '';
+            });
+            document.getElementById('glb-prev').addEventListener('click', function() {
+              index = (index - 1 + images.length) % images.length;
+              show();
+            });
+            document.getElementById('glb-next').addEventListener('click', function() {
+              index = (index + 1) % images.length;
+              show();
+            });
+            lb.addEventListener('click', function(e) {
+              if (e.target === this) {
+                lb.classList.add('hidden');
+                lb.classList.remove('flex');
+                document.body.style.overflow = '';
+              }
+            });
+            document.addEventListener('keydown', function(e) {
+              if (lb.classList.contains('hidden')) return;
+              if (e.key === 'Escape') { lb.classList.add('hidden'); lb.classList.remove('flex'); document.body.style.overflow = ''; }
+              if (e.key === 'ArrowLeft') { index = (index - 1 + images.length) % images.length; show(); }
+              if (e.key === 'ArrowRight') { index = (index + 1) % images.length; show(); }
+            });
+          })();
+        </script>
+      </>
+    )}
   </body>
 </html>

@@ -110,13 +110,14 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
               const val = item[f] || '';
               html += '<div class="mb-1.5 flex items-center gap-2">';
               html += '<span class="w-16 text-xs text-gray-400 shrink-0">' + f + '</span>';
-              if (f === 'image') {
-                html += '<select class="flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs outline-none focus:border-violet-400 item-field" data-idx="' + idx + '" data-field="image">';
-                html += '<option value="">-- 无配图 --</option>';
+              if (f === 'images') {
+                const selected = Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []);
+                html += '<select multiple class="flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs outline-none focus:border-violet-400 item-field" data-idx="' + idx + '" data-field="images" style="min-height:90px">';
                 photoFilenames.forEach(function(pf) {
-                  html += '<option value="' + esc(pf) + '"' + (pf === val ? ' selected' : '') + '>' + esc(pf) + '</option>';
+                  html += '<option value="' + esc(pf) + '"' + (selected.indexOf(pf) !== -1 ? ' selected' : '') + '>' + esc(pf) + '</option>';
                 });
                 html += '</select>';
+                html += '<span class="text-[10px] text-gray-400 mt-0.5 block">按住 Ctrl 多选，第一张为封面</span>';
               } else {
                 html += '<input class="flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs outline-none focus:border-violet-400 item-field" value="' + esc(val) + '" data-idx="' + idx + '" data-field="' + f + '" />';
               }
@@ -154,8 +155,8 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
 
       function getFields(section) {
         const map = {
-          projects: ['slug', 'emoji', 'image', 'tag', 'status', 'description'],
-          talks: ['slug', 'emoji', 'image', 'tag', 'date'],
+          projects: ['slug', 'emoji', 'images', 'tag', 'status', 'description'],
+          talks: ['slug', 'emoji', 'images', 'tag', 'date'],
           anime: ['slug', 'emoji', 'englishName'],
           gaming: ['slug', 'emoji'],
         };
@@ -172,8 +173,8 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
       // ====== 操作 ======
       window.addItem = function() {
         const template = {
-          projects: { slug: '', title: '新项目', emoji: '🎮', image: '', tag: '新标签', status: '', description: '', content: '' },
-          talks: { slug: '', title: '新杂谈', emoji: '📝', image: '', tag: '生活', date: '', content: '' },
+          projects: { slug: '', title: '新项目', emoji: '🎮', images: [], tag: '新标签', status: '', description: '', content: '' },
+          talks: { slug: '', title: '新杂谈', emoji: '📝', images: [], tag: '生活', date: '', content: '' },
           anime: { slug: '', title: '新动漫', emoji: '🌸', englishName: '', description: '' },
           gaming: { slug: '', title: '新模块', emoji: '🎮', content: '' },
         };
@@ -210,9 +211,22 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
           data[currentSection][idx].content = el.value;
         } else if (el.classList.contains('item-field')) {
           const field = el.dataset.field;
-          data[currentSection][idx][field] = el.value;
+          if (field === 'images' && el.tagName === 'SELECT') {
+            data[currentSection][idx].images = Array.from(el.selectedOptions).map(function(o) { return o.value; });
+          } else {
+            data[currentSection][idx][field] = el.value;
+          }
           if (field === 'slug') data[currentSection][idx]._slugEdited = true;
         }
+      });
+
+      // 多选下拉变更监听（change 事件比 input 更可靠）
+      document.addEventListener('change', function(e) {
+        const el = e.target;
+        if (!el.classList.contains('item-field') || el.dataset.field !== 'images') return;
+        const idx = parseInt(el.dataset.idx);
+        if (isNaN(idx) || idx >= (data[currentSection] || []).length) return;
+        data[currentSection][idx].images = Array.from(el.selectedOptions).map(function(o) { return o.value; });
       });
 
       // ====== 选项卡切换 ======
@@ -234,10 +248,11 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
         const fileNames = { projects: 'projects.json', talks: 'talks.json', anime: 'anime.json', gaming: 'gaming.json' };
 
         sections.forEach(function(key) {
-          // Clean _slugEdited before export
+          // Clean helper fields before export
           const clean = data[key].map(function(item) {
             const o = Object.assign({}, item);
             delete o._slugEdited;
+            delete o.image; // 旧单图字段
             return o;
           });
           const blob = new Blob([JSON.stringify(clean, null, 2)], { type: 'application/json' });
@@ -272,6 +287,7 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
             const clean = data[key].map(function(item) {
               const o = Object.assign({}, item);
               delete o._slugEdited;
+              delete o.image;
               return o;
             });
             const content = btoa(unescape(encodeURIComponent(JSON.stringify(clean, null, 2))));
