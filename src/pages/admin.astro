@@ -6,7 +6,7 @@ import animeList from "../data/anime.json";
 import gamingList from "../data/gaming.json";
 const allData = { projects, talks, anime: animeList, gaming: gamingList };
 
-const photoModules = import.meta.glob('../photos/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
+const photoModules = import.meta.glob(['../photos/*.{jpg,png,jpeg,webp}', '../photos/精选/*.{jpg,png,jpeg,webp}'], { eager: true, import: 'default' });
 const photoFilenames = Object.keys(photoModules)
   .sort((a, b) => a.localeCompare(b))
   .map((path) => path.split('/').pop());

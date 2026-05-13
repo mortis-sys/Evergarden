@@ -12,29 +12,32 @@ import gamingList from "../data/gaming.json";
 const songs = playlistData;
 const songsJson = JSON.stringify(songs);
 
-const photoModules = import.meta.glob('../photos/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
-const photoEntries = Object.entries(photoModules)
+// 项目/杂谈配图：从所有照片中查找
+const allPhotoModules = import.meta.glob(['../photos/*.{jpg,png,jpeg,webp}', '../photos/精选/*.{jpg,png,jpeg,webp}'], { eager: true, import: 'default' });
+const allPhotoEntries = Object.entries(allPhotoModules)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, mod]) => mod.src);
+
+// 照片墙：只展示精选文件夹的图片
+const photoWallModules = import.meta.glob('../photos/精选/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
+const photoEntries = Object.entries(photoWallModules)
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, mod]) => mod.src);
 const photoCount = photoEntries.length;
 const photoUrlsJson = JSON.stringify(photoEntries);
-const photoCat = photoEntries.map((_, i) => {
-  if (i === 2) return "动漫";
-  if (i === 12) return "截图";
-  return "日常";
-});
-const categories = ["全部", "动漫", "日常", "截图"];
+const photoCat = photoEntries.map(() => "日常");
+const categories = ["全部", "日常"];
 const categoriesJson = JSON.stringify(categories);
 const photoCatJson = JSON.stringify(photoCat);
 const projectCount = projects.length;
 const talkCount = talks.length;
 
-// 构建文件名 → Astro 处理后图片 URL 映射
+// 构建文件名 → URL 映射（用于项目/杂谈配图查找）
 const photoMap = {};
-Object.entries(photoModules).forEach(([path, mod]) => {
+Object.entries(allPhotoModules).forEach(([path, mod]) => {
   photoMap[path.split('/').pop()] = mod.src;
 });
-const fallbackBg = photoEntries[0];
+const fallbackBg = allPhotoEntries[0];
 
 // 取 images 数组第一张（兼容旧 image 字段）
 function firstImg(item) {
