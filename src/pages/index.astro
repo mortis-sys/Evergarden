@@ -18,18 +18,15 @@ const allPhotoEntries = Object.entries(allPhotoModules)
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, mod]) => mod.src);
 
-// 照片墙：展示主目录 + 精选文件夹的图片
-const photoWallModules = import.meta.glob(['../photos/*.{jpg,png,jpeg,webp}', '../photos/精选/*.{jpg,png,jpeg,webp}'], { eager: true, import: 'default' });
+// 照片墙：只展示精选文件夹的图片
+const photoWallModules = import.meta.glob('../photos/精选/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
 const photoEntries = Object.entries(photoWallModules)
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, mod]) => mod.src);
 const photoCount = photoEntries.length;
 const photoUrlsJson = JSON.stringify(photoEntries);
-const photoCat = photoEntries.map((_, i) => {
-  if (i === 2) return "动漫";
-  return "日常";
-});
-const categories = ["全部", "动漫", "日常"];
+const photoCat = photoEntries.map(() => "日常");
+const categories = ["全部", "日常"];
 const categoriesJson = JSON.stringify(categories);
 const photoCatJson = JSON.stringify(photoCat);
 const projectCount = projects.length;
