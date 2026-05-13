@@ -4,6 +4,7 @@ import projects from "../data/projects.json";
 import talks from "../data/talks.json";
 import animeList from "../data/anime.json";
 import gamingList from "../data/gaming.json";
+import photoCategories from "../data/photo-categories.json";
 const allData = { projects, talks, anime: animeList, gaming: gamingList };
 
 const photoModules = import.meta.glob(['../photos/*.{jpg,png,jpeg,webp}', '../photos/精选/*.{jpg,png,jpeg,webp}'], { eager: true, import: 'default' });
@@ -11,6 +12,13 @@ const photoFilenames = Object.keys(photoModules)
   .sort((a, b) => a.localeCompare(b))
   .map((path) => path.split('/').pop());
 const photoFilenamesJson = JSON.stringify(photoFilenames);
+
+// 精选文件夹照片（用于分类管理）
+const featuredModules = import.meta.glob('../photos/精选/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
+const featuredPhotos = Object.keys(featuredModules)
+  .sort((a, b) => a.localeCompare(b))
+  .map((path) => ({ filename: path.split('/').pop(), path }));
+const featuredPhotosJson = JSON.stringify(featuredPhotos);
 ---
 
 <html lang="zh">
@@ -27,11 +35,11 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
         <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
           <h1 class="mb-4 px-2 text-lg font-bold text-gray-800">内容管理</h1>
           <nav class="space-y-1" id="section-tabs">
-            {["projects", "talks", "anime", "gaming"].map((key) => (
+            {["projects", "talks", "anime", "gaming", "categories"].map((key) => (
               <button
                 class={`tab-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition ${key === "projects" ? "bg-violet-100 text-violet-700" : "text-gray-500 hover:bg-gray-100"}`}
                 data-section={key}
-              >{({ projects: "项目", talks: "杂谈", anime: "动漫", gaming: "游戏交流" })[key]}</button>
+              >{({ projects: "项目", talks: "杂谈", anime: "动漫", gaming: "游戏交流", categories: "分类" })[key]}</button>
             ))}
           </nav>
           <hr class="my-4 border-gray-100" />
@@ -68,6 +76,7 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
 
     <template id="initial-data" set:html={JSON.stringify(allData)}></template>
     <template id="photo-filenames" set:html={photoFilenamesJson}></template>
+    <template id="featured-photos" set:html={featuredPhotosJson}></template>
     <script>
       // ====== 数据层 ======
       let data = {};
@@ -75,11 +84,21 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
         data = JSON.parse(document.getElementById('initial-data')?.innerHTML || '{}');
       } catch(e) { data = { projects: [], talks: [], anime: [], gaming: [] }; }
 
+      // 分类数据
+      let photoCategories = { categories: ["动漫", "日常"], photos: {} };
+      // 精选照片列表
+      const featuredPhotos = JSON.parse(document.getElementById('featured-photos')?.innerHTML || '[]');
+
       let currentSection = 'projects';
-      const sectionLabels = { projects: '项目', talks: '杂谈', anime: '动漫', gaming: '游戏交流' };
+      const sectionLabels = { projects: '项目', talks: '杂谈', anime: '动漫', gaming: '游戏交流', categories: '分类管理' };
 
       // ====== 渲染 ======
       function render() {
+        if (currentSection === 'categories') {
+          renderCategories();
+          return;
+        }
+
         const items = data[currentSection] || [];
         const label = sectionLabels[currentSection];
         const container = document.getElementById('section-content');
@@ -170,6 +189,90 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
 
+      // ====== 分类管理 ======
+      function renderCategories() {
+        const container = document.getElementById('section-content');
+        var cats = photoCategories.categories || [];
+        var photos = photoCategories.photos || {};
+
+        var html = '<div class="mb-6"><h2 class="text-2xl font-bold text-gray-800">分类管理</h2></div>';
+
+        // 分类列表
+        html += '<div class="mb-6 rounded-xl border border-gray-100 bg-gray-50 p-4">';
+        html += '<h3 class="text-sm font-medium text-gray-600 mb-3">分类标签</h3>';
+        html += '<div class="flex flex-wrap gap-2 mb-3" id="cat-tags">';
+        cats.forEach(function(c) {
+          html += '<span class="inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-3 py-1 text-xs text-violet-700">';
+          html += '<span>' + esc(c) + '</span>';
+          html += '<button onclick="deleteCategory(\'' + esc(c) + '\')" class="hover:text-red-500 transition">&times;</button>';
+          html += '</span>';
+        });
+        html += '</div>';
+        html += '<div class="flex gap-2">';
+        html += '<input id="new-cat-input" class="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-violet-400" placeholder="新分类名称" />';
+        html += '<button onclick="addCategory()" class="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700 transition">添加</button>';
+        html += '</div>';
+        html += '</div>';
+
+        // 照片分类分配
+        html += '<div class="rounded-xl border border-gray-100 bg-gray-50 p-4">';
+        html += '<h3 class="text-sm font-medium text-gray-600 mb-3">为照片分配分类（精选文件夹）</h3>';
+
+        if (featuredPhotos.length === 0) {
+          html += '<p class="text-gray-400 text-center py-8 text-xs">精选文件夹暂无照片，请先将照片放入 src/photos/精选/</p>';
+        } else {
+          html += '<div class="space-y-2">';
+          featuredPhotos.forEach(function(fp, idx) {
+            var currentCat = photos[fp.filename] || '未分类';
+            html += '<div class="flex items-center gap-3 rounded-lg bg-white px-3 py-2 border border-gray-100">';
+            html += '<span class="text-xs text-gray-500 font-mono flex-1 truncate">' + esc(fp.filename) + '</span>';
+            html += '<select class="cat-assign rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-violet-400" data-filename="' + esc(fp.filename) + '">';
+            html += '<option value="">未分类</option>';
+            cats.forEach(function(c) {
+              html += '<option value="' + esc(c) + '"' + (c === currentCat ? ' selected' : '') + '>' + esc(c) + '</option>';
+            });
+            html += '</select>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+
+        container.innerHTML = html;
+      }
+
+      window.addCategory = function() {
+        var input = document.getElementById('new-cat-input');
+        var name = input.value.trim();
+        if (!name) return;
+        if (!photoCategories.categories) photoCategories.categories = [];
+        if (photoCategories.categories.indexOf(name) !== -1) { alert('分类已存在'); return; }
+        photoCategories.categories.push(name);
+        input.value = '';
+        renderCategories();
+      };
+
+      window.deleteCategory = function(name) {
+        if (!confirm('确定删除分类「' + name + '」吗？已分配该分类的照片将变为未分类。')) return;
+        photoCategories.categories = photoCategories.categories.filter(function(c) { return c !== name; });
+        // 将使用了该分类的照片重置
+        for (var f in photoCategories.photos) {
+          if (photoCategories.photos[f] === name) delete photoCategories.photos[f];
+        }
+        renderCategories();
+      };
+
+      // 监听分类下拉变更
+      document.addEventListener('change', function(e) {
+        var el = e.target;
+        if (!el.classList.contains('cat-assign')) return;
+        if (!photoCategories.photos) photoCategories.photos = {};
+        var filename = el.dataset.filename;
+        var cat = el.value;
+        if (cat) photoCategories.photos[filename] = cat;
+        else delete photoCategories.photos[filename];
+      });
+
       // ====== 操作 ======
       window.addItem = function() {
         const template = {
@@ -248,11 +351,10 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
         const fileNames = { projects: 'projects.json', talks: 'talks.json', anime: 'anime.json', gaming: 'gaming.json' };
 
         sections.forEach(function(key) {
-          // Clean helper fields before export
           const clean = data[key].map(function(item) {
             const o = Object.assign({}, item);
             delete o._slugEdited;
-            delete o.image; // 旧单图字段
+            delete o.image;
             return o;
           });
           const blob = new Blob([JSON.stringify(clean, null, 2)], { type: 'application/json' });
@@ -265,6 +367,17 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         });
+
+        // 导出分类数据
+        const catBlob = new Blob([JSON.stringify(photoCategories, null, 2)], { type: 'application/json' });
+        const catUrl = URL.createObjectURL(catBlob);
+        const catA = document.createElement('a');
+        catA.href = catUrl;
+        catA.download = 'photo-categories.json';
+        document.body.appendChild(catA);
+        catA.click();
+        document.body.removeChild(catA);
+        URL.revokeObjectURL(catUrl);
       });
 
       // ====== GitHub 推送 ======
@@ -279,10 +392,37 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
         const repo = document.getElementById('github-repo').value.trim();
         if (!token || !repo) { alert('请填写 GitHub Token 和仓库地址'); return; }
 
-        const sections = ['projects', 'talks', 'anime', 'gaming'];
-        const paths = { projects: 'src/data/projects.json', talks: 'src/data/talks.json', anime: 'src/data/anime.json', gaming: 'src/data/gaming.json' };
+        async function pushJSON(repo, token, path, jsonData) {
+          const content = btoa(unescape(encodeURIComponent(jsonData)));
+          let sha = '';
+          try {
+            const resp = await fetch('https://api.github.com/repos/' + repo + '/contents/' + path, {
+              headers: { Authorization: 'Bearer ' + token }
+            });
+            const existing = await resp.json();
+            if (existing.sha) sha = existing.sha;
+          } catch(e) {}
+          const body = { message: '更新 ' + path + '（通过后台管理）', content: content, branch: 'main' };
+          if (sha) body.sha = sha;
+          const resp = await fetch('https://api.github.com/repos/' + repo + '/contents/' + path, {
+            method: 'PUT',
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(path + ': ' + (err.message || resp.status));
+          }
+        }
 
         (async function() {
+          // 推送分类数据
+          await pushJSON(repo, token, 'src/data/photo-categories.json', JSON.stringify(photoCategories, null, 2));
+
+          // 推送各内容数据
+          const sections = ['projects', 'talks', 'anime', 'gaming'];
+          const paths = { projects: 'src/data/projects.json', talks: 'src/data/talks.json', anime: 'src/data/anime.json', gaming: 'src/data/gaming.json' };
+
           for (const key of sections) {
             const clean = data[key].map(function(item) {
               const o = Object.assign({}, item);
@@ -290,38 +430,7 @@ const photoFilenamesJson = JSON.stringify(photoFilenames);
               delete o.image;
               return o;
             });
-            const content = btoa(unescape(encodeURIComponent(JSON.stringify(clean, null, 2))));
-
-            // 获取当前文件 SHA（用于更新而非新建）
-            let sha = '';
-            try {
-              const resp = await fetch('https://api.github.com/repos/' + repo + '/contents/' + paths[key], {
-                headers: { Authorization: 'Bearer ' + token }
-              });
-              const existing = await resp.json();
-              if (existing.sha) sha = existing.sha;
-            } catch(e) {}
-
-            const body = {
-              message: '更新 ' + paths[key] + '（通过后台管理）',
-              content: content,
-              branch: 'main',
-            };
-            if (sha) body.sha = sha;
-
-            const resp = await fetch('https://api.github.com/repos/' + repo + '/contents/' + paths[key], {
-              method: 'PUT',
-              headers: {
-                Authorization: 'Bearer ' + token,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(body),
-            });
-
-            if (!resp.ok) {
-              const err = await resp.json();
-              throw new Error(paths[key] + ': ' + (err.message || resp.status));
-            }
+            await pushJSON(repo, token, paths[key], JSON.stringify(clean, null, 2));
           }
 
           alert('全部文件已推送到 GitHub！\nCloudflare Pages 将自动重新部署。');

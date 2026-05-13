@@ -8,6 +8,7 @@ import projects from "../data/projects.json";
 import talks from "../data/talks.json";
 import animeList from "../data/anime.json";
 import gamingList from "../data/gaming.json";
+import photoCategories from "../data/photo-categories.json";
 
 const songs = playlistData;
 const songsJson = JSON.stringify(songs);
@@ -20,13 +21,14 @@ const allPhotoEntries = Object.entries(allPhotoModules)
 
 // 照片墙：只展示精选文件夹的图片
 const photoWallModules = import.meta.glob('../photos/精选/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
-const photoEntries = Object.entries(photoWallModules)
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([, mod]) => mod.src);
+const photoWallEntries = Object.entries(photoWallModules)
+  .sort(([a], [b]) => a.localeCompare(b));
+const photoWallFilenames = photoWallEntries.map(([path]) => path.split('/').pop());
+const photoEntries = photoWallEntries.map(([, mod]) => mod.src);
 const photoCount = photoEntries.length;
 const photoUrlsJson = JSON.stringify(photoEntries);
-const photoCat = photoEntries.map(() => "日常");
-const categories = ["全部", "日常"];
+const photoCat = photoWallFilenames.map((f) => photoCategories.photos[f] || "日常");
+const categories = ["全部"].concat(photoCategories.categories);
 const categoriesJson = JSON.stringify(categories);
 const photoCatJson = JSON.stringify(photoCat);
 const projectCount = projects.length;
