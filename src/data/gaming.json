@@ -1,26 +1,145 @@
 [
   {
-    "slug": "mobile-games",
-    "title": "手游阅历",
-    "emoji": "📱",
-    "content": "崩坏三 5 年玩家，热爱其剧情。原神、星穹铁道、绝区零开服玩家。Supercell 全系列（海岛奇兵、部落冲突、皇室战争、荒野乱斗），腾讯系（王者荣耀、和平精英、QQ飞车、火影忍者），网易系（梦幻西游、第五人格），以及明日方舟、重返未来 1999、战双帕米什、蔚蓝档案等众多二游。"
+    "slug": "genshin-impact",
+    "title": "原神",
+    "englishName": "Genshin Impact",
+    "emoji": "🌟",
+    "developer": "米哈游",
+    "category": "米哈游",
+    "description": "四年旅行者。最喜欢的还是蒙德的风起地与璃月的荻花洲。每个角色都像老朋友，每年海灯节都会准时回璃月看看。",
+    "since": "2020",
+    "discussions": 24
   },
   {
-    "slug": "pc-games",
-    "title": "端游足迹",
-    "emoji": "🖥️",
-    "content": "我的世界十年玩家，体验过各种整合包，还自己创建过解密地图。CSGO 超过 200 小时，泰拉瑞亚多次通关大师难度。黑神话悟空、空洞骑士、杀戮尖塔、星露谷物语、怪猎世界，还有双人成行、人类一败涂地、战地等联机佳作。"
+    "slug": "star-rail",
+    "title": "崩坏：星穹铁道",
+    "englishName": "Honkai: Star Rail",
+    "emoji": "🚂",
+    "developer": "米哈游",
+    "category": "米哈游",
+    "description": "开服玩家。星穹列车的旅行让人找回了最初玩RPG的感动。仙舟的国风场景美得让人屏息。",
+    "since": "2023",
+    "discussions": 15
+  },
+  {
+    "slug": "zenless-zone-zero",
+    "title": "绝区零",
+    "englishName": "Zenless Zone Zero",
+    "emoji": "📀",
+    "developer": "米哈游",
+    "category": "米哈游",
+    "description": "潮流都市风与爽快动作的结合。走格子探索别有一番风味，代理人各有精彩。",
+    "since": "2024",
+    "discussions": 8
+  },
+  {
+    "slug": "honkai-impact-3rd",
+    "title": "崩坏3",
+    "englishName": "Honkai Impact 3rd",
+    "emoji": "⚡",
+    "developer": "米哈游",
+    "category": "米哈游",
+    "description": "五年老舰长。为世界上所有的美好而战。最后一课、阿波卡利斯如是说——米哈游剧情的巅峰。",
+    "since": "2018",
+    "discussions": 32
+  },
+  {
+    "slug": "arknights",
+    "title": "明日方舟",
+    "englishName": "Arknights",
+    "emoji": "🏥",
+    "developer": "鹰角网络",
+    "category": "鹰角网络",
+    "description": "独特的塔防玩法与美术风格独树一帜。音律联觉的现场让人震撼。罗德岛的干员们各有各的故事。",
+    "since": "2019",
+    "discussions": 18
+  },
+  {
+    "slug": "reverse-1999",
+    "title": "重返未来：1999",
+    "englishName": "Reverse: 1999",
+    "emoji": "🕰️",
+    "developer": "深蓝互动",
+    "category": "深蓝互动",
+    "description": "英伦复古风，全英文配音质感满分。1999年的暴雨带走了她，而你从未放弃寻找。",
+    "since": "2023",
+    "discussions": 10
+  },
+  {
+    "slug": "minecraft",
+    "title": "我的世界",
+    "englishName": "Minecraft",
+    "emoji": "⛏️",
+    "developer": "Mojang",
+    "category": "Steam",
+    "description": "十年玩家。从最初的草方块到各种整合包，还自己做过解密地图。这个游戏的创造力是无限的。",
+    "since": "2014",
+    "discussions": 20
+  },
+  {
+    "slug": "black-myth-wukong",
+    "title": "黑神话悟空",
+    "englishName": "Black Myth: Wukong",
+    "emoji": "🐵",
+    "developer": "游戏科学",
+    "category": "Steam",
+    "description": "国产3A的里程碑。黄风岭、小西天、盘丝洞——每一关都让人惊叹。悟空的故事，中国人的浪漫。",
+    "since": "2024",
+    "discussions": 14
+  },
+  {
+    "slug": "hollow-knight",
+    "title": "空洞骑士",
+    "englishName": "Hollow Knight",
+    "emoji": "🐞",
+    "developer": "Team Cherry",
+    "category": "Steam",
+    "description": "类银河城的巅峰。圣巢的每一个角落都藏着故事，泪城之下的孤独感让人着迷。丝之歌什么时候出？",
+    "since": "2020",
+    "discussions": 7
+  },
+  {
+    "slug": "monster-hunter",
+    "title": "怪物猎人：世界",
+    "englishName": "Monster Hunter: World",
+    "emoji": "🐉",
+    "developer": "Capcom",
+    "category": "Steam",
+    "description": "从被蛮颚龙追着跑到单刷历战王。每个武器都有独特手感，和好友一起狩猎的快乐无可替代。",
+    "since": "2020",
+    "discussions": 9
+  },
+  {
+    "slug": "steam-games",
+    "title": "Steam 游戏集锦",
+    "englishName": "Steam Games",
+    "emoji": "🎮",
+    "developer": "-",
+    "category": "Steam",
+    "description": "CS2 200h+、泰拉瑞亚大师模式通关、杀戮尖塔全职业进阶20、星露谷物语、双人成行、人类一败涂地、战地系列…好游戏不分大小。",
+    "since": "2016",
+    "discussions": 16
+  },
+  {
+    "slug": "mobile-games",
+    "title": "手游杂谈",
+    "englishName": "Mobile Games",
+    "emoji": "📱",
+    "developer": "-",
+    "category": "休闲",
+    "description": "Supercell全系列（部落冲突、皇室战争、荒野乱斗）、腾讯系（王者、和平精英）、网易系（梦幻西游、第五人格）、战双帕米什、蔚蓝档案……好玩的游戏不分平台。",
+    "since": "2015",
+    "discussions": 11
   },
   {
     "slug": "dev",
     "title": "正在开发",
-    "emoji": "🎮",
-    "content": "正在设计一款以森林小动物为主角的解谜跑酷游戏，核心是「陪伴感」而非「挑战性」。同时也在学习 UE 引擎和关卡设计，对开放世界和 Roguelike 的关卡设计有独特的理解与创想。"
-  },
-  {
-    "slug": "mini-games",
-    "title": "小游戏回忆",
-    "emoji": "🎯",
-    "content": "4399 上的爆枪英雄、造梦西游、真人快打、泡泡堂、坦克动荡。还有生死狙击、三国杀。从汤姆猫系列到地铁跑酷、雷霆战机、钢琴块、开心消消乐——好玩的游戏不分大小平台。"
+    "englishName": "Game Dev",
+    "emoji": "🛠️",
+    "developer": "个人项目",
+    "category": "开发中",
+    "description": "正在设计一款以森林小动物为主角的解谜跑酷游戏，核心是「陪伴感」而非「挑战性」。同时也在学习UE引擎和关卡设计，对开放世界和Roguelike的关卡设计有独特的理解。",
+    "since": "2024",
+    "discussions": 5
   }
 ]

@@ -4,34 +4,175 @@
     "title": "紫罗兰永恒花园",
     "englishName": "Violet Evergarden",
     "emoji": "🌸",
-    "description": "自动手记人偶的故事。每集都是一封信，每封信都是一段人生。最美的动画之一。"
+    "description": "自动手记人偶的故事。每集都是一封信，每封信都是一段人生。最美的动画之一。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx21827-ubzq619ZA2E9.png"
   },
   {
     "slug": "natsume",
     "title": "夏目友人帐",
     "englishName": "Natsume's Book of Friends",
     "emoji": "🎋",
-    "description": "温柔的妖怪故事。夏目和猫老师的日常，温暖得让人想哭。"
+    "description": "温柔的妖怪故事。夏目和猫老师的日常，温暖得让人想哭。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx4081-xi08naD69tjr.jpg"
   },
   {
     "slug": "cowboy-bebop",
     "title": "星际牛仔",
     "englishName": "Cowboy Bebop",
     "emoji": "🚀",
-    "description": "太空爵士、赏金猎人与孤独。See you, space cowboy."
+    "description": "太空爵士、赏金猎人与孤独。See you, space cowboy.",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx1-GCsPm7waJ4kS.png"
   },
   {
     "slug": "laid-back-camp",
     "title": "摇曳露营",
     "englishName": "Laid-Back Camp",
-    "emoji": "🌊",
-    "description": "一个人、一顶帐篷、一片星空。最治愈的露营动画。"
+    "emoji": "🏕️",
+    "description": "一个人、一顶帐篷、一片星空。最治愈的露营动画。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx98444-Vzysp1EsrzgD.jpg"
   },
   {
-    "slug": "四月是你的谎言",
+    "slug": "your-lie-in-april",
     "title": "四月是你的谎言",
+    "englishName": "Your Lie in April",
     "emoji": "🌸",
-    "englishName": "April is your idea",
-    "description": "今生无悔四月谎，来世还做友人A"
+    "description": "今生无悔四月谎，来世还做友人A",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx20665-TLgkL8T8IRFd.png"
+  },
+  {
+    "slug": "jojo",
+    "title": "JOJO的奇妙冒险",
+    "englishName": "JoJo's Bizarre Adventure",
+    "emoji": "👊",
+    "description": "人类的赞歌就是勇气的赞歌！普通人的智慧与勇气战胜了绝望。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx14719-VT5dRzTBSZ0w.jpg"
+  },
+  {
+    "slug": "chuunibyou",
+    "title": "中二病也要谈恋爱",
+    "englishName": "Love, Chunibyo & Other Delusions",
+    "emoji": "💕",
+    "description": "谁都有过中二病。勇太和六花的恋爱故事，可爱又动人。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx14741-CGXEIeUe2roA.jpg"
+  },
+  {
+    "slug": "spy-family",
+    "title": "间谍过家家",
+    "englishName": "SPY×FAMILY",
+    "emoji": "🕵️",
+    "description": "一个间谍、一个杀手、一个超能力女儿组成的临时家庭。温馨又刺激。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx140960-Kb6R5nYQfjmP.jpg"
+  },
+  {
+    "slug": "mygo",
+    "title": "BanG Dream! It's MyGO!!!!!",
+    "englishName": "BanG Dream! It's MyGO!!!!!",
+    "emoji": "🎸",
+    "description": "迷路的孩子们，在音乐中找到了彼此。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx163571-Atkvuzh1A1Ip.png"
+  },
+  {
+    "slug": "ave-mujica",
+    "title": "BanG Dream! Ave Mujica",
+    "englishName": "BanG Dream! Ave Mujica",
+    "emoji": "🎭",
+    "description": "假面之下，是真实的自己吗？",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx169295-WxoGTeMbje4T.jpg"
+  },
+  {
+    "slug": "girls-band-cry",
+    "title": "少女乐队的呐喊",
+    "englishName": "GIRLS BAND CRY",
+    "emoji": "🎤",
+    "description": "用音乐呐喊出内心的不甘与愤怒。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx164212-eKh15LQxkTEx.jpg"
+  },
+  {
+    "slug": "evangelion",
+    "title": "新世纪福音战士",
+    "englishName": "Neon Genesis Evangelion",
+    "emoji": "⚔️",
+    "description": "少年驾驶EVA，面对使徒与内心的恐惧。时代的里程碑。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx30-AI1zr74Dh4ye.jpg"
+  },
+  {
+    "slug": "bunny-girl",
+    "title": "青春猪头少年不会梦见兔女郎学姐",
+    "englishName": "Rascal Does Not Dream of Bunny Girl Senpai",
+    "emoji": "🐰",
+    "description": "青春期综合征带来的不可思议现象。麻衣和咲太的故事。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx101291-wfEdgPqtfU0l.jpg"
+  },
+  {
+    "slug": "madoka",
+    "title": "魔法少女小圆",
+    "englishName": "Mahou Shoujo Madoka★Magica",
+    "emoji": "✨",
+    "description": "看似美好的魔法少女世界，背后隐藏着残酷的真相。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx9756-QnUGwlwwnsuN.jpg"
+  },
+  {
+    "slug": "spirit-cage",
+    "title": "灵笼",
+    "englishName": "Spirit Cage",
+    "emoji": "🧬",
+    "description": "末日废土之上，人类最后的堡垒与未知的威胁。国产科幻巅峰。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx110459-K2lyLvxHj72X.jpg"
+  },
+  {
+    "slug": "demon-slayer",
+    "title": "鬼灭之刃",
+    "englishName": "Demon Slayer",
+    "emoji": "🗡️",
+    "description": "大正时代，炭治郎为拯救变成鬼的妹妹而踏上斩鬼之旅。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx101922-WBsBl0ClmgYL.jpg"
+  },
+  {
+    "slug": "scissor-seven",
+    "title": "伍六七",
+    "englishName": "Scissor Seven",
+    "emoji": "✂️",
+    "description": "失忆的理发师刺客伍六七，在小鸡岛上发生的搞笑日常。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx107912-pLrOL1AzEIEt.jpg"
+  },
+  {
+    "slug": "summer-time-render",
+    "title": "夏日重现",
+    "englishName": "Summer Time Rendering",
+    "emoji": "🏝️",
+    "description": "回到小岛参加青梅竹马葬礼的慎平，卷入了一场跨越时间的战斗。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx129201-HJBauga2be8I.png"
+  },
+  {
+    "slug": "majo-no-tabitabi",
+    "title": "魔女之旅",
+    "englishName": "Majo no Tabitabi",
+    "emoji": "🧹",
+    "description": "魔女伊蕾娜的旅行见闻。每个城市都有不同的故事。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx112609-hBCbnYlEHluz.jpg"
+  },
+  {
+    "slug": "tensei-slime",
+    "title": "关于我转生变成史莱姆这件事",
+    "englishName": "That Time I Got Reincarnated as a Slime",
+    "emoji": "💚",
+    "description": "上班族转生异世界成为史莱姆，建立魔物国家的冒险故事。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx101280-tDxCVJm714nt.jpg"
+  },
+  {
+    "slug": "rezero",
+    "title": "Re:从零开始的异世界生活",
+    "englishName": "Re:Zero - Starting Life in Another World",
+    "emoji": "🔄",
+    "description": "死亡回归的能力既是诅咒也是希望。菜月昴的异世界求生记。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx21355-wRVUrGxpvIQQ.jpg"
+  },
+  {
+    "slug": "luo-xiaohei",
+    "title": "罗小黑战记",
+    "englishName": "The Legend of Hei",
+    "emoji": "🐱",
+    "description": "猫妖罗小黑的治愈日常与冒险。国产动画的良心之作。",
+    "image": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx102663-gYYp2lg0ehVG.png"
   }
 ]

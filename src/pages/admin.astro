@@ -13,12 +13,13 @@ const photoFilenames = Object.keys(photoModules)
   .map((path) => path.split('/').pop());
 const photoFilenamesJson = JSON.stringify(photoFilenames);
 
-// 精选文件夹照片（用于分类管理）
-const featuredModules = import.meta.glob('../photos/精选/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
-const featuredPhotos = Object.keys(featuredModules)
-  .sort((a, b) => a.localeCompare(b))
-  .map((path) => ({ filename: path.split('/').pop(), path }));
-const featuredPhotosJson = JSON.stringify(featuredPhotos);
+// 精选文件夹内的照片（默认勾选精选）
+const featuredFolderModules = import.meta.glob('../photos/精选/*.{jpg,png,jpeg,webp}', { eager: true, import: 'default' });
+const featuredFolderFilenames = Object.keys(featuredFolderModules)
+  .map((path) => path.split('/').pop());
+const featuredFolderFilenamesJson = JSON.stringify(featuredFolderFilenames);
+
+const photoCategoriesJson = JSON.stringify(photoCategories);
 ---
 
 <html lang="zh">
@@ -76,7 +77,8 @@ const featuredPhotosJson = JSON.stringify(featuredPhotos);
 
     <template id="initial-data" set:html={JSON.stringify(allData)}></template>
     <template id="photo-filenames" set:html={photoFilenamesJson}></template>
-    <template id="featured-photos" set:html={featuredPhotosJson}></template>
+    <template id="featured-folder-filenames" set:html={featuredFolderFilenamesJson}></template>
+    <template id="photo-categories-data" set:html={photoCategoriesJson}></template>
     <script>
       // ====== 数据层 ======
       let data = {};
@@ -85,9 +87,15 @@ const featuredPhotosJson = JSON.stringify(featuredPhotos);
       } catch(e) { data = { projects: [], talks: [], anime: [], gaming: [] }; }
 
       // 分类数据
-      let photoCategories = { categories: ["动漫", "日常"], photos: {} };
-      // 精选照片列表
-      const featuredPhotos = JSON.parse(document.getElementById('featured-photos')?.innerHTML || '[]');
+      let photoCategories = { categories: ["动漫", "日常"], photos: {}, featured: [] };
+      try { photoCategories = JSON.parse(document.getElementById('photo-categories-data')?.innerHTML || '{}'); } catch(e) {}
+      // 以精选文件夹为基准初始化 featured 列表
+      const featuredFolderFilenames = JSON.parse(document.getElementById('featured-folder-filenames')?.innerHTML || '[]');
+      // 合并现有 featured 和精选文件夹照片（精选文件夹的照片必定勾选）
+      var featuredSet = {};
+      (photoCategories.featured || []).forEach(function(f) { featuredSet[f] = true; });
+      featuredFolderFilenames.forEach(function(f) { featuredSet[f] = true; });
+      photoCategories.featured = Object.keys(featuredSet);
 
       let currentSection = 'projects';
       const sectionLabels = { projects: '项目', talks: '杂谈', anime: '动漫', gaming: '游戏交流', categories: '分类管理' };
@@ -177,7 +185,8 @@ const featuredPhotosJson = JSON.stringify(featuredPhotos);
           projects: ['slug', 'emoji', 'images', 'tag', 'status', 'description'],
           talks: ['slug', 'emoji', 'images', 'tag', 'date'],
           anime: ['slug', 'emoji', 'englishName'],
-          gaming: ['slug', 'emoji'],
+          gaming: ['slug', 'emoji', 'englishName', 'developer', 'category', 'since'],
+          // discussions 从 description 文本自动统计
         };
         return map[section] || [];
       }
@@ -194,6 +203,7 @@ const featuredPhotosJson = JSON.stringify(featuredPhotos);
         const container = document.getElementById('section-content');
         var cats = photoCategories.categories || [];
         var photos = photoCategories.photos || {};
+        var featured = photoCategories.featured || [];
 
         var html = '<div class="mb-6"><h2 class="text-2xl font-bold text-gray-800">分类管理</h2></div>';
 
@@ -214,19 +224,24 @@ const featuredPhotosJson = JSON.stringify(featuredPhotos);
         html += '</div>';
         html += '</div>';
 
-        // 照片分类分配
+        // 照片管理
         html += '<div class="rounded-xl border border-gray-100 bg-gray-50 p-4">';
-        html += '<h3 class="text-sm font-medium text-gray-600 mb-3">为照片分配分类（精选文件夹）</h3>';
+        html += '<h3 class="text-sm font-medium text-gray-600 mb-3">照片管理</h3>';
 
-        if (featuredPhotos.length === 0) {
-          html += '<p class="text-gray-400 text-center py-8 text-xs">精选文件夹暂无照片，请先将照片放入 src/photos/精选/</p>';
+        if (photoFilenames.length === 0) {
+          html += '<p class="text-gray-400 text-center py-8 text-xs">暂无照片，请先将图片放入 src/photos/ 目录</p>';
         } else {
           html += '<div class="space-y-2">';
-          featuredPhotos.forEach(function(fp, idx) {
-            var currentCat = photos[fp.filename] || '未分类';
+          photoFilenames.forEach(function(filename) {
+            var currentCat = photos[filename] || '未分类';
+            var isFeatured = featured.indexOf(filename) !== -1;
             html += '<div class="flex items-center gap-3 rounded-lg bg-white px-3 py-2 border border-gray-100">';
-            html += '<span class="text-xs text-gray-500 font-mono flex-1 truncate">' + esc(fp.filename) + '</span>';
-            html += '<select class="cat-assign rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-violet-400" data-filename="' + esc(fp.filename) + '">';
+            html += '<label class="flex items-center gap-2 cursor-pointer shrink-0">';
+            html += '<input type="checkbox" class="featured-checkbox" data-filename="' + esc(filename) + '"' + (isFeatured ? ' checked' : '') + '>';
+            html += '<span class="text-xs ' + (isFeatured ? 'text-violet-600 font-medium' : 'text-gray-400') + '">在精选</span>';
+            html += '</label>';
+            html += '<span class="text-xs text-gray-500 font-mono flex-1 truncate">' + esc(filename) + '</span>';
+            html += '<select class="cat-assign rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-violet-400" data-filename="' + esc(filename) + '">';
             html += '<option value="">未分类</option>';
             cats.forEach(function(c) {
               html += '<option value="' + esc(c) + '"' + (c === currentCat ? ' selected' : '') + '>' + esc(c) + '</option>';
@@ -273,13 +288,31 @@ const featuredPhotosJson = JSON.stringify(featuredPhotos);
         else delete photoCategories.photos[filename];
       });
 
+      // 监听「在精选」勾选变更
+      document.addEventListener('change', function(e) {
+        var el = e.target;
+        if (!el.classList.contains('featured-checkbox')) return;
+        if (!photoCategories.featured) photoCategories.featured = [];
+        var filename = el.dataset.filename;
+        if (el.checked) {
+          if (photoCategories.featured.indexOf(filename) === -1) photoCategories.featured.push(filename);
+        } else {
+          photoCategories.featured = photoCategories.featured.filter(function(f) { return f !== filename; });
+        }
+        // 更新标签颜色
+        var label = el.parentElement.querySelector('span');
+        if (label) {
+          label.className = 'text-xs ' + (el.checked ? 'text-violet-600 font-medium' : 'text-gray-400');
+        }
+      });
+
       // ====== 操作 ======
       window.addItem = function() {
         const template = {
           projects: { slug: '', title: '新项目', emoji: '🎮', images: [], tag: '新标签', status: '', description: '', content: '' },
           talks: { slug: '', title: '新杂谈', emoji: '📝', images: [], tag: '生活', date: '', content: '' },
           anime: { slug: '', title: '新动漫', emoji: '🌸', englishName: '', description: '' },
-          gaming: { slug: '', title: '新模块', emoji: '🎮', content: '' },
+          gaming: { slug: '', title: '新游戏', emoji: '🎮', englishName: '', developer: '', category: '', description: '', since: '2026', discussions: 0 },
         };
         data[currentSection].push(template[currentSection]);
         render();
